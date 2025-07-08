@@ -82,7 +82,7 @@ const scrollScreen = () => {
 const processMessage = ({ data }) => {
     const parsed = JSON.parse(data)
 
-    if (parsed.type === "connect" || parsed.type === "disconnect") {
+    if (parsed.type === "connect") {
         const connectDiv = document.createElement("div")
         connectDiv.classList.add("message--entry")
         connectDiv.textContent = parsed.content
@@ -99,6 +99,7 @@ const processMessage = ({ data }) => {
             : createMessageOtherElement(content, userName, userColor)
 
     chatMessages.appendChild(message)
+
     scrollScreen()
 }
 
@@ -112,7 +113,7 @@ const handleLogin = (event) => {
     login.style.display = "none"
     chat.style.display = "flex"
 
-    websocket = new WebSocket("wss://chat-backend-xuyc.onrender.com")
+    websocket = new WebSocket("ws://chat-backend-qxmi.onrender.com")
 
     const agora = new Date();
     const horas = agora.getHours().toString().padStart(2, '0');
@@ -147,13 +148,3 @@ const sendMessage = (event) => {
 
 loginForm.addEventListener("submit", handleLogin)
 chatForm.addEventListener("submit", sendMessage)
-window.addEventListener("beforeunload", () => {
-    if (websocket && websocket.readyState === WebSocket.OPEN) {
-        const disconnectMessage = {
-            type: "disconnect",
-            content: `${user.name} saiu do chat!`
-        }
-        websocket.send(JSON.stringify(disconnectMessage))
-    }
-})
-
