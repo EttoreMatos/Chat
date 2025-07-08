@@ -113,7 +113,7 @@ const handleLogin = (event) => {
     login.style.display = "none"
     chat.style.display = "flex"
 
-    websocket = new WebSocket("ws://chat-backend-qxmi.onrender.com")
+    websocket = new WebSocket("wss://chat-backend-xuyc.onrender.com")
 
     const agora = new Date();
     const horas = agora.getHours().toString().padStart(2, '0');
