@@ -123,7 +123,7 @@ function exit() {
     connectDiv.textContent = connectMessage.content;  // corrigido aqui
     chatMessages.appendChild(connectDiv);
 
-    window.close();  // corrigido aqui
+    window.location.href = "";
 }
 const handleLogin = (event) => {
     event.preventDefault()
