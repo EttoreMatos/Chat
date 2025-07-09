@@ -132,6 +132,23 @@ body {
 .chat__button > span{
     font-size: 1.8rem;
 }
+.cont-top {
+    background-color: #191919;
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    padding: 3px 10px;
+}
+.title {
+    margin-top: 0;
+    display: block;
+    max-width: 100px;
+    align-self: flex-start;
+    font-family: 'Caveat', cursive;
+    font-size: 50px;
+    font-weight: bold;
+    margin-bottom: 0;
+}
 
 .chat__messages >  div{
     word-break: break-word;
@@ -139,7 +156,7 @@ body {
     white-space: normal;
     padding: 10px;
     width: 100%;
-    max-width: 300px;
+    max-width: 400px;
     font-size: 0.9rem;
     font-weight: 500;
     margin-bottom: 15px;
@@ -179,6 +196,7 @@ body {
     vertical-align: bottom;
 }
 .message--entry {
+    align-self: 20%;
     align-self: center;
     background-color: rgba(255, 255, 255, 0.156);
     color: #bfbfbf;
@@ -188,4 +206,28 @@ body {
     border-radius: 20px;
     text-align: center;
     max-width: 80%;
+}
+.sair-container {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    padding: 10px 20px;
+}
+.sair {
+    background-color: rgba(0, 0, 0, 0);
+    color: red;
+    border: 2px solid red;
+    padding: 10px;
+    width: 100px;
+    text-align: center;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s;
+}
+.sair:hover {
+    background-color: red;
+    color: white;
+}
+.sair:active {
+    opacity: 0.7;
 }
