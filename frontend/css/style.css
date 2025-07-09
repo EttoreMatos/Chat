@@ -27,6 +27,7 @@ body {
 
 
 .login {
+   display: block;
    width: 100%;
    max-width: 330px;
    background:linear-gradient(45deg,#d01df0,#1dcdf0);
@@ -136,20 +137,28 @@ body {
     background-color: #191919;
     width: 100%;
     display: flex;
-    justify-content: flex-end;
-    padding: 3px 10px;
-}
-.title {
-    margin-top: 0;
-    display: block;
-    max-width: 100px;
-    align-self: flex-start;
-    font-family: 'Caveat', cursive;
-    font-size: 50px;
-    font-weight: bold;
-    margin-bottom: 0;
+    justify-content: space-between; /* título à esquerda, botão à direita */
+    align-items: center;
+    padding: 10px 20px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    gap: 10px;
+    z-index: 1000;
 }
 
+.title {
+    margin: 0;
+    max-width: 100px;
+    font-family: 'Caveat', cursive;
+    text-align: left;
+    font-size: 50px;
+    font-weight: bold;
+    color: white;
+}
+.chat__messages {
+    margin-top: 50px;
+}
 .chat__messages >  div{
     word-break: break-word;
     overflow-wrap: break-word;
