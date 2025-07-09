@@ -24,10 +24,10 @@ const user = { id: "", name: "", color: "" }
 let websocket
 
 const createMessageSelfElement = (content) => {
-    const agora = new Date();
-    const horas = agora.getHours().toString().padStart(2, '0');
-    const minutos = agora.getMinutes().toString().padStart(2, '0');
-    const horario = `${horas}:${minutos}`;
+    const agora = new Date()
+    const horas = agora.getHours().toString().padStart(2, '0')
+    const minutos = agora.getMinutes().toString().padStart(2, '0')
+    const horario = `${horas}:${minutos}`
 
     const div = document.createElement("div")
     const spanHour = document.createElement("span")
@@ -42,10 +42,10 @@ const createMessageSelfElement = (content) => {
 }
 
 const createMessageOtherElement = (content, sender, senderColor) => {
-    const agora = new Date();
-    const horas = agora.getHours().toString().padStart(2, '0');
-    const minutos = agora.getMinutes().toString().padStart(2, '0');
-    const horario = `${horas}:${minutos}`;
+    const agora = new Date()
+    const horas = agora.getHours().toString().padStart(2, '0')
+    const minutos = agora.getMinutes().toString().padStart(2, '0')
+    const horario = `${horas}:${minutos}`
 
     const div = document.createElement("div")
     const span = document.createElement("span")
@@ -102,7 +102,29 @@ const processMessage = ({ data }) => {
 
     scrollScreen()
 }
+function exit() {
+    const agora = new Date();
+    const horas = agora.getHours().toString().padStart(2, '0');
+    const minutos = agora.getMinutes().toString().padStart(2, '0');
+    const horario = `${horas}:${minutos}`;
 
+    scrollScreen();
+
+    const connectMessage = {
+        userName: "", // você pode inserir o nome aqui se necessário
+        type: "connect",
+        content: `${user.name} saiu do chat às ${horario}`
+    };
+
+    websocket.send(JSON.stringify(connectMessage));
+
+    const connectDiv = document.createElement("div");
+    connectDiv.classList.add("message--entry");
+    connectDiv.textContent = connectMessage.content;  // corrigido aqui
+    chatMessages.appendChild(connectDiv);
+
+    window.close();  // corrigido aqui
+}
 const handleLogin = (event) => {
     event.preventDefault()
 
@@ -115,10 +137,10 @@ const handleLogin = (event) => {
 
     websocket = new WebSocket("wss://chat-backend-xuyc.onrender.com")
 
-    const agora = new Date();
-    const horas = agora.getHours().toString().padStart(2, '0');
-    const minutos = agora.getMinutes().toString().padStart(2, '0');
-    const horario = `${horas}:${minutos}`;
+    const agora = new Date()
+    const horas = agora.getHours().toString().padStart(2, '0')
+    const minutos = agora.getMinutes().toString().padStart(2, '0')
+    const horario = `${horas}:${minutos}`
     websocket.onopen = () => {
         const connectMessage = {
             userName: "",
