@@ -42,6 +42,26 @@ body {
     margin-bottom: 20px;
 }
 
+.custom-file-upload {
+    border: none;
+    padding: 15px;
+    border-radius: 5px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    background-color: #ddd;
+    cursor: pointer;
+    color: #121212;
+    text-align: center;
+  }
+  
+.custom-file-upload:hover {
+    background-color: #f2f2f2;
+}
+  
+.custom-file-upload input[type="file"] {
+    display: none;
+}
+
 .login__form {
     display: flex;
     flex-direction: column;
@@ -182,7 +202,10 @@ body {
 }
 
 .message--other {
+    padding: 10px;
     display: block;
+    width: 400px;
+    max-width: 400px;
     background-color: #333;
     color: #f2f2f2;
     border-radius: 0 10px 10px 10px;
@@ -199,7 +222,6 @@ body {
 
 .hour {
     font-size: 0.75rem;
-    margin-top: 10px;
     margin-left: 10px;
     float: right;
     vertical-align: bottom;
@@ -216,7 +238,7 @@ body {
     text-align: center;
     max-width: 80%;
 }
-.sair-container {
+.topo-container {
     width: 100%;
     display: flex;
     justify-content: flex-end;
@@ -228,6 +250,7 @@ body {
     border: 2px solid red;
     padding: 10px;
     width: 100px;
+    max-height: 45px;
     text-align: center;
     border-radius: 7px;
     cursor: pointer;
@@ -239,4 +262,34 @@ body {
 }
 .sair:active {
     opacity: 0.7;
+}
+.message-container {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+.message-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%; /* cria círculo:contentReference[oaicite:8]{index=8} */
+    background-color: black; /* para mostrar círculo preto se src vazio */
+}
+
+
+.topo-avatar {
+    display: flex;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%; /* cria círculo:contentReference[oaicite:8]{index=8} */
+    background-color: black; /* para mostrar círculo preto se src vazio */
+    align-items: center;
+}
+.topo-nome {
+    margin-bottom: 10px;
+    font-weight: 700;
+    font-size: 30px;
+    margin-left: 20px;
+    margin-right: 20px;
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
