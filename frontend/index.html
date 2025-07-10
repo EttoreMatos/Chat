@@ -17,12 +17,18 @@
             <h2>Login</h2>
             <form class="login__form">
                 <input type="text" class="login__input" placeholder="Seu nome" required />
+                <label class="custom-file-upload">
+                    <input type="file" class="login__avatar" accept="image/*" />
+                    Escolher foto do perfil
+                </label>
                 <button type="submit" class="login__button">Entrar</button>
             </form>
         </section>
         <section class="cont-top">
             <h2 class="title">FastChat</h2>
-            <div class="sair-container">
+            <div class="topo-container">
+                <img class="topo-avatar" src="" alt="avatar">
+                <span class="topo-nome"></span>
                 <button class="sair" onclick="exit()">Logout</button>
             </div>
         </section>
