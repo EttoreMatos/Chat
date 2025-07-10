@@ -9,6 +9,9 @@ const chatForm = chat.querySelector(".chat__form")
 const chatInput = chat.querySelector(".chat__input")
 const chatMessages = chat.querySelector(".chat__messages")
 const chatHour = chat.querySelector(".hour")
+const audio_alert = document.getElementById("alert")
+const audio_conect = document.getElementById("conect")
+const audio_disconect = document.getElementById("disconect")
 
 const colors = [
     "cadetblue",
@@ -41,7 +44,12 @@ const createMessageSelfElement = (content) => {
     return div
 }
 
-const createMessageOtherElement = (content, sender, senderColor) => {
+function createMessageOtherElement(content, sender, senderColor) {
+    // Toca o som de alerta
+    audio_alert.play().catch((e) => {
+        console.warn("Não foi possível tocar o som:", e.message)
+    })
+
     const agora = new Date()
     const horas = agora.getHours().toString().padStart(2, '0')
     const minutos = agora.getMinutes().toString().padStart(2, '0')
@@ -52,16 +60,15 @@ const createMessageOtherElement = (content, sender, senderColor) => {
     const spanHour = document.createElement("span")
 
     div.classList.add("message--other")
-
     span.classList.add("message--sender")
     spanHour.classList.add("hour")
     span.style.color = senderColor
 
-    div.appendChild(span)
+    span.textContent = sender
+    spanHour.textContent = horario
 
-    span.innerHTML = sender
-    div.innerHTML += content
-    spanHour.innerHTML += horario
+    div.appendChild(span)
+    div.append(content)
     div.appendChild(spanHour)
 
     return div
@@ -102,6 +109,8 @@ const processMessage = ({ data }) => {
 
     scrollScreen()
 }
+
+
 function exit() {
     const agora = new Date();
     const horas = agora.getHours().toString().padStart(2, '0');
@@ -111,11 +120,10 @@ function exit() {
     scrollScreen();
 
     const connectMessage = {
-        userName: "", // você pode inserir o nome aqui se necessário
-        type: "connect",
-        content: `${user.name} saiu do chat às ${horario}`
+        type: "disconnect",
+        userName: user.name,
+        content: `${user.name} saiu do chat às ${horario}`,
     };
-
     websocket.send(JSON.stringify(connectMessage));
 
     const connectDiv = document.createElement("div");
