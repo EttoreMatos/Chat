@@ -10,8 +10,6 @@ const chatInput = chat.querySelector(".chat__input")
 const chatMessages = chat.querySelector(".chat__messages")
 const chatHour = chat.querySelector(".hour")
 const audio_alert = document.getElementById("alert")
-const audio_conect = document.getElementById("conect")
-const audio_disconect = document.getElementById("disconect")
 
 const colors = [
     "cadetblue",
@@ -109,8 +107,6 @@ const processMessage = ({ data }) => {
 
     scrollScreen()
 }
-
-
 function exit() {
     const agora = new Date();
     const horas = agora.getHours().toString().padStart(2, '0');
@@ -120,10 +116,11 @@ function exit() {
     scrollScreen();
 
     const connectMessage = {
-        type: "disconnect",
-        userName: user.name,
-        content: `${user.name} saiu do chat às ${horario}`,
+        userName: "", // você pode inserir o nome aqui se necessário
+        type: "connect",
+        content: `${user.name} saiu do chat às ${horario}`
     };
+
     websocket.send(JSON.stringify(connectMessage));
 
     const connectDiv = document.createElement("div");
