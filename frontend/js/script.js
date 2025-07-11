@@ -14,7 +14,6 @@ const chatHour = chat.querySelector(".hour")
 const audio_alert = document.getElementById("alert");
 const topoAvatar = document.querySelector(".topo-avatar");
 topoAvatar.style.display = "none"
-PreviewAvatar.style.display = "none"
 const colors = [
     "cadetblue",
     "darkgoldenrod",
@@ -32,13 +31,11 @@ const defaultAvatar = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAY
 avatarInput.addEventListener("change", () => {
     const file = avatarInput.files[0];
     if (!file) {
-        PreviewAvatar.style.display = "block";
         PreviewAvatar.src = defaultAvatar;  // base64 ou caminho válido
         return;
     }
     const reader = new FileReader();
     reader.onload = () => {
-        PreviewAvatar.style.display = "block";
         PreviewAvatar.src = reader.result;
     };
     reader.readAsDataURL(file);
