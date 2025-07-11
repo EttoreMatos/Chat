@@ -159,7 +159,7 @@ body {
     display: flex;
     justify-content: space-between; /* título à esquerda, botão à direita */
     align-items: center;
-    padding: 10px 20px;
+    padding: 10px 10px;
     position: fixed;
     top: 0;
     left: 0;
@@ -172,7 +172,7 @@ body {
     max-width: 100px;
     font-family: 'Caveat', cursive;
     text-align: left;
-    font-size: 50px;
+    font-size: 45px;
     font-weight: bold;
     color: white;
 }
@@ -249,7 +249,7 @@ body {
     color: red;
     border: 2px solid red;
     padding: 10px;
-    width: 100px;
+    width: 80px;
     max-height: 45px;
     text-align: center;
     border-radius: 7px;
@@ -287,9 +287,8 @@ body {
 .topo-nome {
     margin-bottom: 10px;
     font-weight: 700;
-    font-size: 30px;
-    margin-left: 20px;
-    margin-right: 20px;
-    margin-top: 10px;
-    margin-bottom: 10px;
+    font-size: 20px;
+    margin-left: 10px;
+    margin-right: 10px;
+    margin-top: 14px;
 }
