@@ -3,6 +3,7 @@ const login = document.querySelector(".login");
 const loginForm = login.querySelector(".login__form");
 const avatarInput = login.querySelector(".login__avatar");
 const loginInput = login.querySelector(".login__input");
+const PreviewAvatar = document.querySelector(".Preview-avatar");
 
 // chat elements
 const chat = document.querySelector(".chat");
@@ -13,7 +14,7 @@ const chatHour = chat.querySelector(".hour")
 const audio_alert = document.getElementById("alert");
 const topoAvatar = document.querySelector(".topo-avatar");
 topoAvatar.style.display = "none"
-
+PreviewAvatar.style.display = "none"
 const colors = [
     "cadetblue",
     "darkgoldenrod",
@@ -24,11 +25,29 @@ const colors = [
 ];
 
 // Avatar padrão (círculo preto de 40x40 em PNG Base64)
-const defaultAvatar = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/r4JAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAFhJREFUeNrs0cENgCAMBEBv+Z+ddMYWCIwgYrfGr0sKTxFyD1cZkYBBgAEGABBgAEGAARaA8f84VGThdyGQglSEJchQVyFBXIUlcgQV8v9Whv3AAMAxr0c7UktEfD4AAAAASUVORK5CYII=";
+const defaultAvatar = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAArklEQVRYR+3WwQ2AIBRE0Sx+kOVZwVYKJ3hTYnSY9TxAIp9R2tHX9vMxNMGkD4C8AgkJgFZgg0YA2gDTAM7kAQA4DRhsMABGY2k3pcoAcNgD2FwB1Z/7x+9hyoDKB7pADaSvIVwlz4Gi6ARHtDT9tgCI4BMCm54A2VbbA9i8A32BpaV7rc3xEvkW2NY+j4c6Rr2nOtu3AqKzNSc0poD02pTbSCau+Kd7kH4Fxoc6+FquFNsAAAAASUVORK5CYII=";
+
+
+// Evento para mostrar preview do avatar ou padrão
+avatarInput.addEventListener("change", () => {
+    const file = avatarInput.files[0];
+    if (!file) {
+        PreviewAvatar.style.display = "block";
+        PreviewAvatar.src = defaultAvatar;  // base64 ou caminho válido
+        return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+        PreviewAvatar.style.display = "block";
+        PreviewAvatar.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+});
 
 const user = { id: "", name: "", color: "", avatar: "" };
 let websocket;
-
+PreviewAvatar.src = defaultAvatar;
+user.avatar = defaultAvatar;
 // Cria elemento de mensagem própria
 const createMessageSelfElement = (content) => {
     const agora = new Date();
@@ -208,12 +227,10 @@ const handleLogin = (event) => {
         };
         reader.readAsDataURL(file);
     } else {
-        user.avatar = defaultAvatar;
+        user.avatar = defaultAvatar;  // usa imagem padrão aqui também
         iniciarChat();
     }
-    console.log("Avatar Input:", avatarInput);
 };
-
 const sendMessage = (event) => {
     event.preventDefault();
 
