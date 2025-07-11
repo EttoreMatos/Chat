@@ -105,6 +105,16 @@ body {
   'opsz' 24
 }
 
+.Preview-avatar {
+    display: block;
+    margin: 10px auto; /* centraliza horizontalmente */
+    width: 70%;
+    max-width: 150px;
+    object-fit: cover;
+    border-radius: 50%; /* para manter formato redondo */
+    background-color: black; /* fallback se imagem não carregar */
+}
+
 .chat {
     width: 100%;
     height: 100%;
