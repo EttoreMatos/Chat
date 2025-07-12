@@ -329,7 +329,7 @@ body {
   
 
 .chat-image {
-    max-width: 350px;
+    max-width: 300px;
     height: auto;
     border-radius: 10px;
     cursor: pointer;
