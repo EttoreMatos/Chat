@@ -255,7 +255,14 @@ imageInput.addEventListener("change", () => {
       previewImage.style.display = "none";
       document.querySelector(".preview-wrapper").style.display = "none"; // esconder wrapper
     } else {
-      content = chatInput.value;
+      let raw = chatInput.value.trim();
+      if (!raw) return;
+        
+      // Transforma URLs em links clicáveis
+      const urlRegex = /((https?|ftp):\/\/[^\s]+)/g;
+      content = raw.replace(urlRegex, (url) => {
+        return `<a href="${url}" target="_blank" style="color:#0479c1; text-decoration: underline;">${url}</a>`;
+      });
       if (!content.trim()) return;
       chatInput.value = "";
     }
