@@ -287,6 +287,7 @@ body {
     max-height: 50px;
     border-radius: 50%; /* cria círculo:contentReference[oaicite:8]{index=8} */
     background-color: black; /* para mostrar círculo preto se src vazio */
+    object-fit: cover; 
 }
 
 
@@ -299,6 +300,7 @@ body {
     border-radius: 50%; /* cria círculo:contentReference[oaicite:8]{index=8} */
     background-color: black; /* para mostrar círculo preto se src vazio */
     align-items: center;
+    object-fit: cover; 
 }
 .topo-nome {
     margin-bottom: 10px;
@@ -308,3 +310,28 @@ body {
     margin-right: 10px;
     margin-top: 14px;
 }
+
+.preview-wrapper {
+    position: absolute;
+    bottom: 80px; /* altura acima do formulário */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    display: none;
+  }
+  
+  #previewImage {
+    max-width: 20vw;
+    max-height: 20vh;
+    border: 2px dashed white;
+    border-radius: 10px;
+  }
+  
+
+.chat-image {
+    max-width: 350px;
+    height: auto;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  
