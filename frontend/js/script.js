@@ -228,20 +228,71 @@ const handleLogin = (event) => {
         iniciarChat();
     }
 };
-const sendMessage = (event) => {
-    event.preventDefault();
-
-    const message = {
-        userId: user.id,
-        userName: user.name,
-        userColor: user.color,
-        userAvatar: user.avatar,
-        content: chatInput.value
+let imageBase64 = null;
+const imageInput = document.getElementById("imageInput");
+const previewImage = document.getElementById("previewImage");
+imageInput.addEventListener("change", () => {
+    const file = imageInput.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      imageBase64 = reader.result;
+      previewImage.src = imageBase64;
+      previewImage.style.display = "block";
+      document.querySelector(".preview-wrapper").style.display = "block";  // mostrar wrapper
     };
-
+    reader.readAsDataURL(file);
+  });
+  
+  const sendMessage = (event) => {
+    event.preventDefault();
+    let content = "";
+  
+    if (imageBase64) {
+      content = `<img src="${imageBase64}" class="chat-image">`;
+      imageBase64 = null;
+      imageInput.value = "";
+      previewImage.style.display = "none";
+      document.querySelector(".preview-wrapper").style.display = "none"; // esconder wrapper
+    } else {
+      content = chatInput.value;
+      if (!content.trim()) return;
+      chatInput.value = "";
+    }
+  
+    const message = {
+      userId: user.id,
+      userName: user.name,
+      userColor: user.color,
+      userAvatar: user.avatar,
+      content
+    };
+  
     websocket.send(JSON.stringify(message));
-    chatInput.value = "";
 };
+
+// Adicione visualização no modal ao clicar em qualquer imagem enviada
+chatMessages.addEventListener("click", (e) => {
+  if (e.target.tagName === "IMG" && e.target.classList.contains("chat-image")) {
+    const modal = document.getElementById("imageModal");
+    const modalImg = document.getElementById("modalImage");
+
+    // Se o modal já estiver aberto com a mesma imagem, feche
+    if (modal.style.display === "flex" && modalImg.src === e.target.src) {
+      modal.style.display = "none";
+      return;
+    }
+
+    modalImg.src = e.target.src;
+    modal.style.display = "flex";
+  }
+});
+
+// Fechar o modal ao clicar na imagem exibida
+const modalImg = document.getElementById("modalImage");
+modalImg.addEventListener("click", () => {
+  document.getElementById("imageModal").style.display = "none";
+});
 
 // Eventos
 loginForm.addEventListener("submit", handleLogin);
