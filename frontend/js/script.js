@@ -304,3 +304,23 @@ modalImg.addEventListener("click", () => {
 // Eventos
 loginForm.addEventListener("submit", handleLogin);
 chatForm.addEventListener("submit", sendMessage);
+document.addEventListener("paste", (event) => {
+    const items = (event.clipboardData || window.clipboardData).items;
+  
+    for (let item of items) {
+      if (item.type.indexOf("image") !== -1) {
+        const file = item.getAsFile();
+        const reader = new FileReader();
+  
+        reader.onload = () => {
+          imageBase64 = reader.result;
+          previewImage.src = imageBase64;
+          previewImage.style.display = "block";
+          document.querySelector(".preview-wrapper").style.display = "block";
+        };
+  
+        reader.readAsDataURL(file);
+        break;
+      }
+    }
+  });
