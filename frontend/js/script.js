@@ -305,7 +305,7 @@ modalImg.addEventListener("click", () => {
 loginForm.addEventListener("submit", handleLogin);
 chatForm.addEventListener("submit", sendMessage);
 document.addEventListener("paste", (event) => {
-    const items = (event.clipboardData || window.clipboardData).items;
+    const items = (event.clipboardData || window.Clipboard).items;
   
     for (let item of items) {
       if (item.type.indexOf("image") !== -1) {
