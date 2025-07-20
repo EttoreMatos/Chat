@@ -15,10 +15,4 @@ wss.on("connection", (ws) => {
 
     console.log("client connected")
 })
-if (message.type === "delete") {
-    // retransmite o ID da mensagem a todos os clientes
-    broadcast(JSON.stringify({
-        type: "delete",
-        messageId: message.messageId
-    }));
-}
+
