@@ -360,3 +360,11 @@ body {
     border-radius: 10px;
     font-weight: bold;
 }
+
+.mention {
+    background-color: #06356581; /* azul claro com transparência */
+    color: inherit; /* será sobrescrito inline */
+    padding: 5px 6px;
+    border-radius: 10px;
+    font-weight: bold;
+  }
