@@ -36,7 +36,7 @@ body {
    display: block;
    width: 100%;
    max-width: 330px;
-   background:linear-gradient(45deg,#d01df0,#1dcdf0);
+   background: #181818;
    border-radius: 10px;
    padding: 20px;
 }
@@ -51,17 +51,19 @@ body {
 .custom-file-upload {
     border: none;
     padding: 15px;
-    border-radius: 5px;
+    border-radius: 10px;
     font-size: 0.85rem;
     font-weight: 700;
-    background-color: #ddd;
+    background: linear-gradient(45deg,#d01df0,#1dcdf0);
     cursor: pointer;
     color: #121212;
+    transition: 0.3s ease;
     text-align: center;
   }
   
 .custom-file-upload:hover {
-    background-color: #f2f2f2;
+    filter: brightness(1.2);
+    box-shadow: 0 0 15px #0ef;
 }
   
 .custom-file-upload input[type="file"] {
@@ -82,27 +84,36 @@ body {
     background-color: #121212;
     color: #f2f2f2;
     outline: none;
-    border-radius: 5px;
+    border-radius: 10px;
+    transition: 0.3s ease;
 }
-
+.login__input:hover {
+    box-shadow: 0 0 10px #0ef;
+}
 .login__input:focus {
-    outline: 2px solid #f2f2f2;
+    filter: brightness(1.5);
+    box-shadow: 0 0 15px #0ef;
 }
 
 .login__button {
     border: none;
     padding: 15px;
-    border-radius: 5px;
+    border-radius: 10px;
     font-size: 0.85rem;
     font-weight: 700;
-    background-color: #ddd;
+    background: linear-gradient(45deg,#d01df0,#1dcdf0);
     cursor: pointer;
     color: #121212;
+    transition: 0.3s ease;
 }
 .login__button:hover {
-    background-color: #f2f2f2;
+   box-shadow: 0 0 15px #0ef;
+   animation: hueShift 1s;
 }
-
+@keyframes hueShift {
+    0%   { filter: hue-rotate(0deg); }
+    100% { filter: hue-rotate(360deg); }
+}
 .material-symbols-outlined {
   font-variation-settings:
   'FILL' 1,
@@ -148,8 +159,14 @@ body {
     position: fixed;
     bottom:0;
     left: 0;
-    width: 100%;
+    width: 99%;
     border-radius: 30px;
+    margin-bottom: 10px;
+    margin-left: 10px;
+}
+.chat__form:focus-within {
+    box-shadow: 0 0 14px #0ef;
+    transition: box-shadow 0.3s ease;
 }
 
 .chat__input { 
@@ -272,24 +289,27 @@ body {
     padding: 10px 20px;
 }
 .sair {
-    background-color: rgba(0, 0, 0, 0);
-    color: red;
-    border: 2px solid red;
+    background: linear-gradient(45deg,#d01df0,#1dcdf0);
+    color: black;
+    font-weight: bold;
+    border: none;
     padding: 10px;
     width: 80px;
-    max-height: 45px;
+    height: 45px;
     text-align: center;
     border-radius: 7px;
     cursor: pointer;
-    transition: background-color 0.15s, color 0.15s;
+    transition: 0.3s, color 0.15s;
 }
 .sair:hover {
-    background-color: red;
-    color: white;
+    box-shadow: 0 0 15px rgb(0, 174, 255); 
+    animation: p1 0.5s;
+    filter: hue-rotate(100deg);
 }
 .sair:active {
     opacity: 0.7;
 }
+
 .message-container {
     display: flex;
     align-items: flex-start;
@@ -359,4 +379,9 @@ body {
     padding: 5px 6px;
     border-radius: 10px;
     font-weight: bold;
+  }
+
+@keyframes p1 {
+    0%   { filter: hue-rotate(0deg); }
+    100% { filter: hue-rotate(100deg); }
 }
