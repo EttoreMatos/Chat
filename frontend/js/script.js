@@ -47,6 +47,17 @@ let websocket;
 PreviewAvatar.src = defaultAvatar;
 user.avatar = defaultAvatar;
 // Cria elemento de mensagem própria
+
+function highlightMentions(text) {
+  return text.replace(/@(\w+)/g, (match, username) => {
+    const color = activeUsers[username.toLowerCase()];
+    if (color) {
+      return `<span class="mention" style="color: Yellow">${match}</span>`;
+    }
+    return match;
+  });
+}
+
 const createMessageSelfElement = (content) => {
     const agora = new Date();
     const horas = agora.getHours().toString().padStart(2, '0');
@@ -74,7 +85,7 @@ function createMessageOtherElement(content, sender, senderColor, avatarData) {
     const horas = agora.getHours().toString().padStart(2, '0');
     const minutos = agora.getMinutes().toString().padStart(2, '0');
     const horario = `${horas}:${minutos}`;
-
+    
     // Container geral da mensagem
     const container = document.createElement("div");
     container.classList.add("message-container");
@@ -130,6 +141,8 @@ const scrollScreen = () => {
     });
 };
 
+const activeUsers = {}; // { nomeMinusculo: cor }
+
 const processMessage = ({ data }) => {
     const parsed = JSON.parse(data);
 
@@ -144,14 +157,20 @@ const processMessage = ({ data }) => {
 
     const { userId, userName, userColor, content, userAvatar } = parsed;
 
+    // Atualiza mapa de usuários ativos
+    activeUsers[userName.toLowerCase()] = userColor;
+
+    // Destaca menções na mensagem
+    const contentWithMentions = highlightMentions(content);
+
     const message =
         userId === user.id
-            ? createMessageSelfElement(content)
-            : createMessageOtherElement(content, userName, userColor, userAvatar);
+            ? createMessageSelfElement(contentWithMentions)
+            : createMessageOtherElement(contentWithMentions, userName, userColor, userAvatar);
 
-    chatMessages.appendChild(message);
-    scrollScreen();
-};
+        chatMessages.appendChild(message);
+        scrollScreen();
+    };
 
 // Função chamada após carregar avatar (ou usar padrão)
 function iniciarChat() {
