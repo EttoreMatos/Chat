@@ -1,3 +1,4 @@
+/*style.css*/
 *{
     margin: 0;
     padding: 0;
@@ -6,13 +7,18 @@
 }
 
 :root {
-    background: url("../images/background.png");
-    background-size: cover;
-    background-attachment: fixed;
+    --color-bg: #191919;
+    --color-primary: #d01df0;
+    --color-secondary: #1dcdf0;
+    --color-text-light: #f2f2f2;
+    --color-text-dark: #121212;
     font-size: 16px;
 }
 
 body {
+   background: url("../images/background.png");
+   background-size: cover;
+   background-attachment: fixed;
    color: #f2f2f2;
 }
 
@@ -181,7 +187,7 @@ body {
 
 .title {
     margin: 0;
-    max-width: 100px;
+    max-width: 200px;
     font-family: 'Caveat', cursive;
     text-align: left;
     font-size: 45px;
@@ -205,25 +211,34 @@ body {
 }
 
 .message--self {
-    display: block;
+    padding: 10px;
+    display: inline-block; /* inline-block permite ajustar largura ao conteúdo */
+    max-inline-size: 70%; /* largura máxima relativa ao container */
+    min-inline-size: 80px; /* largura mínima mais enxuta */
     background-color: #f2f2f2;
     color: #121212;
     border-radius: 10px 10px 0 10px;
-    align-self: end;
+    align-self: flex-end;
+    margin-bottom: 0;
     word-break: break-word;
+    overflow-wrap: break-word;
 }
+
+
+
 
 .message--other {
     padding: 10px;
-    display: block;
-    width: 400px;
-    max-width: 400px;
+    display: inline-block;
+    max-inline-size: 70%;
+    min-inline-size: 120px; /* maior que self para balancear */
     background-color: #333;
     color: #f2f2f2;
     border-radius: 0 10px 10px 10px;
-    align-self: start;
+    align-self: flex-start;
     margin-bottom: 0;
     word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 .message--sender {
@@ -326,12 +341,14 @@ body {
     border: 2px dashed white;
     border-radius: 10px;
   }
-  
 
 .chat-image {
-    max-width: 330px;
-    height: auto;
+    max-width: 100%;
+    max-height: 400px;
     border-radius: 10px;
     cursor: pointer;
-  }
-  
+    display: block;
+    height: auto;
+    width: auto;
+    object-fit: contain;
+}
