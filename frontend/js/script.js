@@ -232,6 +232,12 @@ function exit() {
 const handleLogin = async (event) => {
   event.preventDefault();
 
+  const token = grecaptcha.getResponse();
+  if (!token) {
+      alert("Por favor, confirme que você não é um robô.");
+      return;
+  }
+
   loginBtn.textContent = "Conectando...";
 
   user.id = crypto.randomUUID();
@@ -245,13 +251,13 @@ const handleLogin = async (event) => {
       const reader = new FileReader();
       reader.onload = async () => {
           user.avatar = reader.result;
-          await delay(1000); // espera 1 segundo
+          await delay(1000);
           iniciarChat();
       };
       reader.readAsDataURL(file);
   } else {
       user.avatar = defaultAvatar;
-      await delay(1000); // espera 1 segundo
+      await delay(1000);
       iniciarChat();
   }
 };
