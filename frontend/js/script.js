@@ -13,8 +13,10 @@ const chatForm = chat.querySelector(".chat__form");
 const chatInput = chat.querySelector(".chat__input");
 const chatMessages = chat.querySelector(".chat__messages");
 const chatHour = chat.querySelector(".hour")
-const audio_alert = document.getElementById("alert");
 const topoAvatar = document.querySelector(".topo-avatar");
+const audio_alert = document.getElementById("alert");
+const audio_connect = document.getElementById("connect");
+const audio_disconnect = document.getElementById("disconnect");
 topoAvatar.style.display = "none"
 const colors = [
     "cadetblue",
@@ -148,6 +150,9 @@ const processMessage = ({ data }) => {
     const parsed = JSON.parse(data);
 
     if (parsed.type === "connect") {
+        audio_connect.play().catch((e) => {
+            console.warn("Não foi possível tocar o som:", e.message);
+        });
         const connectDiv = document.createElement("div");
         connectDiv.classList.add("message--entry");
         connectDiv.textContent = parsed.content;
@@ -155,6 +160,17 @@ const processMessage = ({ data }) => {
         scrollScreen();
         return;
     }
+    if (parsed.type === "disconnect") {
+      audio_disconnect.play().catch((e) => {
+          console.warn("Não foi possível tocar o som:", e.message);
+      });
+      const disconnectDiv = document.createElement("div");
+      disconnectDiv.classList.add("message--entry");
+      disconnectDiv.textContent = parsed.content;
+      chatMessages.appendChild(disconnectDiv);
+      scrollScreen();
+      return;
+    } 
 
     const { userId, userName, userColor, content, userAvatar } = parsed;
 
@@ -212,19 +228,19 @@ function exit() {
 
     scrollScreen();
 
-    const connectMessage = {
+    const disconnectMessage = {
         userName: "",
-        type: "connect",
+        type: "disconnect",
         content: `${user.name} saiu do chat às ${horario}`
     };
 
-    websocket.send(JSON.stringify(connectMessage));
+    websocket.send(JSON.stringify(disconnectMessage));
 
-    const connectDiv = document.createElement("div");
-    connectDiv.classList.add("message--entry");
-    connectDiv.textContent = connectMessage.content;
+    const disconnectDiv = document.createElement("div");
+    disconnectDiv.classList.add("message--entry");
+    disconnectDiv.textContent = disconnectMessage.content;
 
-    chatMessages.appendChild(connectDiv);
+    chatMessages.appendChild(disconnectDiv);
 
     window.location.href = "";
 }
