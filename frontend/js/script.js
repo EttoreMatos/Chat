@@ -4,6 +4,7 @@ const login = document.querySelector(".login");
 const loginForm = login.querySelector(".login__form");
 const avatarInput = login.querySelector(".login__avatar");
 const loginInput = login.querySelector(".login__input");
+const loginBtn = login.querySelector(".login__button");
 const PreviewAvatar = document.querySelector(".Preview-avatar");
 
 // chat elements
@@ -26,6 +27,7 @@ const colors = [
 
 // Avatar padrão (círculo preto de 40x40 em PNG Base64)
 const defaultAvatar = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAArklEQVRYR+3WwQ2AIBRE0Sx+kOVZwVYKJ3hTYnSY9TxAIp9R2tHX9vMxNMGkD4C8AgkJgFZgg0YA2gDTAM7kAQA4DRhsMABGY2k3pcoAcNgD2FwB1Z/7x+9hyoDKB7pADaSvIVwlz4Gi6ARHtDT9tgCI4BMCm54A2VbbA9i8A32BpaV7rc3xEvkW2NY+j4c6Rr2nOtu3AqKzNSc0poD02pTbSCau+Kd7kH4Fxoc6+FquFNsAAAAASUVORK5CYII=";
+
 
 // Evento para mostrar preview do avatar ou padrão
 avatarInput.addEventListener("change", () => {
@@ -227,26 +229,34 @@ function exit() {
     window.location.href = "";
 }
 
-const handleLogin = (event) => {
-    event.preventDefault();
+const handleLogin = async (event) => {
+  event.preventDefault();
 
-    user.id = crypto.randomUUID();
-    user.name = loginInput.value;
-    user.color = getRandomColor();
+  loginBtn.textContent = "Conectando...";
 
-    const file = avatarInput?.files?.[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = () => {
-            user.avatar = reader.result;
-            iniciarChat();
-        };
-        reader.readAsDataURL(file);
-    } else {
-        user.avatar = defaultAvatar;  // usa imagem padrão aqui também
-        iniciarChat();
-    }
+  user.id = crypto.randomUUID();
+  user.name = loginInput.value;
+  user.color = getRandomColor();
+
+  const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+  const file = avatarInput?.files?.[0];
+  if (file) {
+      const reader = new FileReader();
+      reader.onload = async () => {
+          user.avatar = reader.result;
+          await delay(1000); // espera 1 segundo
+          iniciarChat();
+      };
+      reader.readAsDataURL(file);
+  } else {
+      user.avatar = defaultAvatar;
+      await delay(1000); // espera 1 segundo
+      iniciarChat();
+  }
 };
+
+
 let imageBase64 = null;
 const imageInput = document.getElementById("imageInput");
 const previewImage = document.getElementById("previewImage");
