@@ -62,7 +62,7 @@ body {
   }
   
 .custom-file-upload:hover {
-    filter: brightness(1.2);
+    filter: brightness(1.5);
     box-shadow: 0 0 15px #0ef;
 }
   
@@ -107,7 +107,10 @@ body {
     transition: 0.3s ease;
 }
 .login__button:hover {
+   filter: brightness(1.5);
    box-shadow: 0 0 15px #0ef;
+}
+.login__button:focus {
    animation: hueShift 1s;
 }
 @keyframes hueShift {
@@ -159,10 +162,11 @@ body {
     position: fixed;
     bottom:0;
     left: 0;
-    width: 99%;
+    width: 98%;
     border-radius: 30px;
     margin-bottom: 10px;
-    margin-left: 10px;
+    margin-left: 1%;
+    margin-right: 2%;
 }
 .chat__form:focus-within {
     box-shadow: 0 0 14px #0ef;
