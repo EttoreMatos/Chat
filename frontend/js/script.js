@@ -55,7 +55,7 @@ function highlightMentions(text) {
   return text.replace(/@(\w+)/g, (match, username) => {
     const color = activeUsers[username.toLowerCase()];
     if (color) {
-      return `<span class="mention" style="color: Yellow">${match}</span>`;
+      return `<span class="mention" style="color: ${color}">${match}</span>`;
     }
     return match;
   });
