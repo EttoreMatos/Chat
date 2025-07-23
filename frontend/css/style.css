@@ -7,11 +7,6 @@
 }
 
 :root {
-    --color-bg: #191919;
-    --color-primary: #d01df0;
-    --color-secondary: #1dcdf0;
-    --color-text-light: #f2f2f2;
-    --color-text-dark: #121212;
     font-size: 16px;
 }
 
@@ -31,7 +26,6 @@ body {
     border-radius:20px;
 }
 
-
 .login {
    display: block;
    width: 100%;
@@ -39,6 +33,7 @@ body {
    background: #181818;
    border-radius: 10px;
    padding: 20px;
+   position: relative;
 }
 
 .login > h2 {
@@ -46,6 +41,41 @@ body {
     font-weight: 700;
     font-size: 1.5rem;
     margin-bottom: 20px;
+}
+
+@property --angle {
+    syntax: "<angle>";
+    initial-value: 0deg;
+    inherits: false;
+}
+
+.login::after, .login::before {
+    --angle: 0deg;
+    content: '';
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    border-radius: 10px;
+    background-image: conic-gradient(from var(--angle), #d01df0, #1dcdf0, #d01df0);
+    top: 50%;
+    left: 50%;
+    translate: -50% -50%;
+    z-index: -1;
+    padding: 3px;
+    animation: 3s spin linear infinite;
+}
+
+.login::before {
+    filter: blur(1.5rem);
+    opacity: 0.8;
+}
+@keyframes spin{
+    from{
+        --angle: 0deg;
+    }
+    to{
+        --angle: 360deg;
+    }
 }
 
 .custom-file-upload {
@@ -62,7 +92,7 @@ body {
   }
   
 .custom-file-upload:hover {
-    filter: brightness(1.5);
+    filter: brightness(1.2);
     box-shadow: 0 0 15px #0ef;
 }
   
@@ -107,7 +137,7 @@ body {
     transition: 0.3s ease;
 }
 .login__button:hover {
-   filter: brightness(1.5);
+   filter: brightness(1.2);
    box-shadow: 0 0 15px #0ef;
 }
 .login__button:focus {
