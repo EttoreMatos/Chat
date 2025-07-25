@@ -24,7 +24,6 @@ const colors = [
     "darkolivegreen",
     "cornflowerblue",
     "darkkhaki",
-    "hotpink",
     "gold",
     "deeppink",
     "green"
