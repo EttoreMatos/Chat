@@ -21,10 +21,13 @@ topoAvatar.style.display = "none"
 const colors = [
     "cadetblue",
     "darkgoldenrod",
+    "darkolivegreen",
     "cornflowerblue",
     "darkkhaki",
     "hotpink",
-    "gold"
+    "gold",
+    "deeppink",
+    "green"
 ];
 
 // Avatar padrão (círculo preto de 40x40 em PNG Base64)
@@ -53,7 +56,7 @@ user.avatar = defaultAvatar;
 
 function highlightMentions(text) {
   return text.replace(/@(\w+)/g, (match, username) => {
-    const color = activeUsers[username.toLowerCase()];
+    const color = activeUsers[username.trim().toLowerCase()];
     if (color) {
       return `<span class="mention" style="color: ${color}">${match}</span>`;
     }
@@ -133,8 +136,22 @@ function createMessageOtherElement(content, sender, senderColor, avatarData) {
 }
 
 const getRandomColor = () => {
-    const randomIndex = Math.floor(Math.random() * colors.length);
-    return colors[randomIndex];
+    if(user.name.trim().toLowerCase() === "ettore"){
+      return "#00FA9A";
+    }
+    else if(user.name.trim().toLowerCase() === "isabella"){
+      return "#C71585";
+    }
+    else if(user.name.trim().toLowerCase() === "bebella"){
+      return "#C71585";
+    }
+    else if(user.name.trim().toLowerCase() === "manu"){
+      return "#FF69B4";
+    }
+    else{
+      const randomIndex = Math.floor(Math.random() * colors.length);
+      return colors[randomIndex];
+    }
 };
 
 const scrollScreen = () => {
