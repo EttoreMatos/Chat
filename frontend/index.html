@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="./css/style.css">
 
     <title>FastChat</title>
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <script src='https://www.google.com/recaptcha/api.js'></script>
 </head>
 <body>
     
@@ -20,13 +20,22 @@
             <img class="Preview-avatar" src="">
             <form class="login__form">
                 <input type="text" class="login__input" placeholder="Seu nome" required />
+                <input type="text" class="idade__input" placeholder="Sua idade(opcional)">
+                <input type="text" class="des__input" placeholder="Descrição(opcional)">
+
                 <label class="custom-file-upload">
                     <input type="file" class="login__avatar" accept="image/*" />
                     Escolher foto do perfil
                 </label>
+
                 <button type="submit" class="login__button">Entrar</button>
-                <div class="g-recaptcha" data-sitekey="6LeYxYsrAAAAAKHfczL8MgAs1XBXQKQAUgyf7vvJ"></div>
+
+                <div class="recaptcha-container">
+                  <div class="g-recaptcha" data-sitekey="6LeYxYsrAAAAAKHfczL8MgAs1XBXQKQAUgyf7vvJ" data-theme="dark"></div>
+                </div>
+
             </form>
+
         </section>
         <section class="cont-top">
             <h2 class="title">FastChat</h2>
@@ -38,6 +47,16 @@
         </section>
         <section class="chat">
             <section class="chat__messages">
+                <div id="profileModal" class="modal" style="display:none; position:fixed; top:0; left:0; 
+                    width:100%; height:100%; background-color:rgba(0,0,0,0.8);
+                    justify-content:center; align-items:center; z-index:2000; flex-direction:column;">
+                <div id="profileCard" style="background:#222; padding:20px; border-radius:10px; color:#fff; text-align:center;">
+                    <img id="profileImage" src="" alt="Avatar" style="width:100px; height:100px; border-radius:50%; margin-bottom:10px;">
+                    <h3 id="profileName" style="margin:5px 0; font-weight: bold;"></h3>
+                    <p id="profileAge" style="margin:5px 0;font-weight: bold;"></p>
+                    <p id="profileDesc" style="margin:5px 0;font-weight: bold;"></p>
+                </div>
+                </div>
             <!--<section class="message--entry"></section>
                 <div class="message--self">Hello, World!</div>
 
@@ -47,7 +66,7 @@
                 </div> 
                 <span class="hour"></span> -->
             </section>
-            
+
             <audio id="alert" style="display: none;">
                 <source src="audios_chat/alerta.mp3" type="audio/mpeg">
             </audio>
@@ -57,7 +76,7 @@
             <audio id="disconnect" style="display: none;">
                 <source src="audios_chat/disconnect.mp3" type="audio/mpeg">
             </audio>  
-            
+
             <form class="chat__form">
                 <input type="file" id="imageInput" accept="image/*" style="display:none">
                 <button type="button" onclick="document.getElementById('imageInput').click()">
@@ -72,13 +91,16 @@
                 <div id="imageModal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(0,0,0,0.9); justify-content:center; align-items:center; z-index:2000; flex-direction: column;">
                     <img id="modalImage" style="max-width:90%; max-height:80%; margin-bottom: 10px; cursor: pointer;">
                 </div>
+                <div id="login_modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(0,0,0,0.9); justify-content:center; align-items:center; z-index:2000; flex-direction: column;">
+                    <img id="modalImage" style="max-width:90%; max-height:80%; margin-bottom: 10px; cursor: pointer;">
+                </div>
                 <input type="text" class="chat__input" placeholder="Digite uma mensagem">
                 <button type="submit" class="chat__button">
                     <span class="material-symbols-outlined">send</span>
                 </button>
             </form>
         </section>
-        
+
     </section>
 
     <script src="./js/script.js"></script>
