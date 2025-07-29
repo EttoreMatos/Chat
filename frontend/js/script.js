@@ -5,6 +5,8 @@ const loginForm = login.querySelector(".login__form");
 const avatarInput = login.querySelector(".login__avatar");
 const loginInput = login.querySelector(".login__input");
 const loginBtn = login.querySelector(".login__button");
+const ageInput = login.querySelector(".idade__input");
+const descInput = login.querySelector(".des__input");
 const PreviewAvatar = document.querySelector(".Preview-avatar");
 
 // chat elements
@@ -28,15 +30,13 @@ const colors = [
     "deeppink",
     "green"
 ];
-
 // Avatar padrão (círculo preto de 40x40 em PNG Base64)
 const defaultAvatar = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAArklEQVRYR+3WwQ2AIBRE0Sx+kOVZwVYKJ3hTYnSY9TxAIp9R2tHX9vMxNMGkD4C8AgkJgFZgg0YA2gDTAM7kAQA4DRhsMABGY2k3pcoAcNgD2FwB1Z/7x+9hyoDKB7pADaSvIVwlz4Gi6ARHtDT9tgCI4BMCm54A2VbbA9i8A32BpaV7rc3xEvkW2NY+j4c6Rr2nOtu3AqKzNSc0poD02pTbSCau+Kd7kH4Fxoc6+FquFNsAAAAASUVORK5CYII=";
-
 
 // Evento para mostrar preview do avatar ou padrão
 avatarInput.addEventListener("change", () => {
     const file = avatarInput.files[0];
-    if (!file) {
+    if (!file) {n
         PreviewAvatar.src = defaultAvatar;  // base64 ou caminho válido
         return;
     }
@@ -166,22 +166,30 @@ const processMessage = ({ data }) => {
     const parsed = JSON.parse(data);
 
     if (parsed.type === "connect") {
-        audio_connect.play().catch((e) => {
-            console.warn("Não foi possível tocar o som:", e.message);
-        });
-        const connectDiv = document.createElement("div");
-        connectDiv.classList.add("message--entry");
-        connectDiv.textContent = parsed.content;
-        chatMessages.appendChild(connectDiv);
-        scrollScreen();
-        return;
+      audio_connect.play().catch((e) => {
+        console.warn("Não foi possível tocar o som:", e.message);
+      });
+      const connectDiv = document.createElement("div");
+      connectDiv.classList.add("message--entry");
+      connectDiv.textContent = parsed.content;
+    
+      // Armazena dados do perfil nos atributos data-*
+      connectDiv.dataset.username = parsed.userName;
+      connectDiv.dataset.age = parsed.userAge;
+      connectDiv.dataset.description = parsed.userDesc;
+      connectDiv.dataset.avatar = parsed.userAvatar;
+    
+      chatMessages.appendChild(connectDiv);
+      scrollScreen();
+      return;
     }
+    
     if (parsed.type === "disconnect") {
       audio_disconnect.play().catch((e) => {
           console.warn("Não foi possível tocar o som:", e.message);
       });
       const disconnectDiv = document.createElement("div");
-      disconnectDiv.classList.add("message--entry");
+      disconnectDiv.classList.add("message--exit");
       disconnectDiv.textContent = parsed.content;
       chatMessages.appendChild(disconnectDiv);
       scrollScreen();
@@ -218,21 +226,24 @@ function iniciarChat() {
      topoAvatar.src = user.avatar || defaultAvatar;
 
     websocket = new WebSocket("wss://chat-backend-xuyc.onrender.com");
-
-    const agora = new Date();
-    const horas = agora.getHours().toString().padStart(2, '0');
-    const minutos = agora.getMinutes().toString().padStart(2, '0');
-    const horario = `${horas}:${minutos}`;
-
     websocket.onopen = () => {
-        const connectMessage = {
-            userName: "",
-            type: "connect",
-            content: `${user.name} entrou no chat às ${horario}`
-        };
-        websocket.send(JSON.stringify(connectMessage));
-    };
+      const agora = new Date();
+      const horas = agora.getHours().toString().padStart(2, '0');
+      const minutos = agora.getMinutes().toString().padStart(2, '0');
+      const horario = `${horas}:${minutos}`;
 
+      const connectMessage = {
+        type: "connect",
+        userId: user.id,
+        userName: user.name,
+        userColor: user.color,
+        userAvatar: user.avatar,
+        userAge: user.age,
+        userDesc: user.description,
+        content: `${user.name} entrou no chat às ${horario}`
+      };
+      websocket.send(JSON.stringify(connectMessage));
+    }
     websocket.onmessage = processMessage;
 }
 
@@ -267,7 +278,7 @@ const handleLogin = async (event) => {
   const token = grecaptcha.getResponse();
   if (!token) {
       alert("Por favor, confirme que você não é um robô.");
-      return;
+
   }
 
   loginBtn.textContent = "Conectando...";
@@ -275,6 +286,8 @@ const handleLogin = async (event) => {
   user.id = crypto.randomUUID();
   user.name = loginInput.value;
   user.color = getRandomColor();
+  user.age = ageInput.value.trim() || "";
+  user.description = descInput.value.trim() || "";
 
   const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -391,3 +404,27 @@ document.addEventListener("paste", (event) => {
       }
     }
   });
+chatMessages.addEventListener("click", (e) => {
+    // Se clicou em uma div com classe .message--entry
+    const entry = e.target.closest(".message--entry");
+    if (entry) {
+      // Pegar dados do usuário a partir dos data-attributes
+      const name = entry.dataset.username;
+      const age = entry.dataset.age;
+      const desc = entry.dataset.description;
+      const avatar = entry.dataset.avatar;
+  
+      // Atualizar conteúdo do modal
+      document.getElementById("profileImage").src = avatar;
+      document.getElementById("profileName").textContent = name;
+      document.getElementById("profileAge").textContent = `Idade: ${age}`;
+      document.getElementById("profileDesc").textContent = desc;
+  
+      // Exibir modal
+      document.getElementById("profileModal").style.display = "flex";
+    }
+});
+  // Fechar modal ao clicar em qualquer lugar do overlay (incluindo o card)
+  document.getElementById("profileModal").addEventListener("click", () => {
+    document.getElementById("profileModal").style.display = "none";
+});
