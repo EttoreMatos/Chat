@@ -79,9 +79,10 @@ body {
 }
 
 .custom-file-upload {
+    color: rgb(168, 0, 253);
     border: none;
     padding: 15px;
-    border-radius: 10px;
+    border-radius: 35px;
     font-size: 0.85rem;
     font-weight: 700;
     background: linear-gradient(45deg,#d01df0,#1dcdf0);
@@ -105,7 +106,8 @@ body {
     flex-direction: column;
     gap: 15px;
 }
-
+.idade__input,
+.des__input,
 .login__input {
     border: none;
     padding: 15px;
@@ -117,9 +119,13 @@ body {
     border-radius: 10px;
     transition: 0.3s ease;
 }
+.idade__input:hover,
+.des__input:hover,
 .login__input:hover {
     box-shadow: 0 0 10px #0ef;
 }
+.idade__input:focus,
+.des__input:focus,
 .login__input:focus {
     filter: brightness(1.5);
     box-shadow: 0 0 15px #0ef;
@@ -128,7 +134,7 @@ body {
 .login__button {
     border: none;
     padding: 15px;
-    border-radius: 10px;
+    border-radius: 35px;
     font-size: 0.85rem;
     font-weight: 700;
     background: linear-gradient(45deg,#d01df0,#1dcdf0);
@@ -274,10 +280,6 @@ body {
     word-break: break-word;
     overflow-wrap: break-word;
 }
-
-
-
-
 .message--other {
     padding: 10px;
     display: inline-block;
@@ -291,19 +293,18 @@ body {
     word-break: break-word;
     overflow-wrap: break-word;
 }
-
 .message--sender {
     display: block;
     margin-bottom: 10px;
     font-weight: 700;
 }
-
 .hour {
     font-size: 0.75rem;
     margin-left: 10px;
     float: right;
     vertical-align: bottom;
 }
+.message--exit,
 .message--entry {
     align-self: 20%;
     align-self: center;
@@ -316,6 +317,16 @@ body {
     text-align: center;
     max-width: 80%;
 }
+.message-avatar {
+    width: 50px;
+    height: 50px;
+    max-width: 50px;
+    max-height: 50px;
+    border-radius: 50%; /* cria círculo:contentReference[oaicite:8]{index=8} */
+    background-color: black; /* para mostrar círculo preto se src vazio */
+    object-fit: cover; 
+}
+
 .topo-container {
     width: 100%;
     display: flex;
@@ -343,23 +354,11 @@ body {
 .sair:active {
     opacity: 0.7;
 }
-
 .message-container {
     display: flex;
     align-items: flex-start;
     gap: 10px;
 }
-.message-avatar {
-    width: 50px;
-    height: 50px;
-    max-width: 50px;
-    max-height: 50px;
-    border-radius: 50%; /* cria círculo:contentReference[oaicite:8]{index=8} */
-    background-color: black; /* para mostrar círculo preto se src vazio */
-    object-fit: cover; 
-}
-
-
 .topo-avatar {
     display: flex;
     width: 50px;
