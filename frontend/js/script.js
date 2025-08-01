@@ -264,7 +264,7 @@ function exit() {
     websocket.send(JSON.stringify(disconnectMessage));
 
     const disconnectDiv = document.createElement("div");
-    disconnectDiv.classList.add("message--entry");
+    disconnectDiv.classList.add("message--exit");
     disconnectDiv.textContent = disconnectMessage.content;
 
     chatMessages.appendChild(disconnectDiv);
@@ -278,7 +278,7 @@ const handleLogin = async (event) => {
   const token = grecaptcha.getResponse();
   if (!token) {
       alert("Por favor, confirme que você não é um robô.");
-      return;
+
   }
 
   loginBtn.textContent = "Conectando...";
@@ -340,7 +340,9 @@ imageInput.addEventListener("change", () => {
         
       // Transforma URLs em links clicáveis
       const urlRegex = /((https?|ftp):\/\/[^\s]+)/g;
-      content = raw.replace(urlRegex, (url) => {
+      content = raw
+      .replace(/(?:\r\n|\r|\n)/g, '<br>') // Quebra de linha -> <br>
+      .replace(urlRegex, (url) => {
         return `<a href="${url}" target="_blank" style="color:#0479c1; text-decoration: underline;">${url}</a>`;
       });
       if (!content.trim()) return;
@@ -427,4 +429,27 @@ chatMessages.addEventListener("click", (e) => {
   // Fechar modal ao clicar em qualquer lugar do overlay (incluindo o card)
   document.getElementById("profileModal").addEventListener("click", () => {
     document.getElementById("profileModal").style.display = "none";
+});
+
+chatMessages.addEventListener("click", (e) => {
+  const message = e.target.closest(".message-container");
+  if (message) {
+    const senderElement = message.querySelector(".message--sender");
+    if (senderElement) {
+      const senderName = senderElement.textContent;
+      const hourElement = message.querySelector(".hour");
+      const time = hourElement ? hourElement.textContent : "??:??";
+      chatInput.value = `Respondendo a ${senderName} (${time}): \n `;
+      chatInput.focus();
+    }
+  }
+});
+const input = document.querySelector(".chat__input");
+const form = document.querySelector(".chat__form");
+
+input.addEventListener("keydown", function (e) {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault(); // Impede quebra de linha
+    form.requestSubmit(); // Envia o formulário
+  }
 });
