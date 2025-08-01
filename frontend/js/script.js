@@ -439,7 +439,7 @@ chatMessages.addEventListener("click", (e) => {
       const senderName = senderElement.textContent;
       const hourElement = message.querySelector(".hour");
       const time = hourElement ? hourElement.textContent : "??:??";
-      chatInput.value = `Respondendo a ${senderName} (${time}): \n `;
+      chatInput.value = `Respondendo a @${senderName} (${time}): \n`;
       chatInput.focus();
     }
   }
