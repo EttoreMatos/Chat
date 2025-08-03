@@ -82,7 +82,19 @@ const createMessageSelfElement = (content) => {
 };
 
 function createMessageOtherElement(content, sender, senderColor, avatarData) {
-    new Notification("FastChat", {body:`Mensagem de ${sender}:  ${content}`});
+    let preview;
+    if (/^<img[^>]*>/i.test(content.trim())) {
+      preview = "imagem";
+    } else {
+      // Remove HTML, limita a 50 caracteres
+      const temp = document.createElement("div");
+      temp.innerHTML = content;
+      preview = temp.textContent.trim().slice(0, 50);
+    }
+    new Notification("FastChat", {
+      body: `Mensagem de ${sender}: ${preview}`
+    });
+    
     audio_alert.play().catch((e) => {
         console.warn("Não foi possível tocar o som:", e.message);
     });
