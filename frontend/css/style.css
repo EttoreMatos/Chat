@@ -109,6 +109,7 @@ body {
 .idade__input,
 .des__input,
 .login__input {
+    width: 100%;
     border: none;
     padding: 15px;
     font-size: 0.85rem;
@@ -124,6 +125,10 @@ body {
 .login__input:hover {
     box-shadow: 0 0 10px #0ef;
 }
+.idade__input::placeholder {
+    color: transparent;
+}
+
 .idade__input:focus,
 .des__input:focus,
 .login__input:focus {
@@ -149,10 +154,51 @@ body {
 .login__button:focus {
    animation: hueShift 1s;
 }
+
+  .input-group {
+    color: #121212;
+    position: relative;
+    width: 100%;
+  }
+  
+  .input-group label {
+    position: absolute;
+    top: 16px;
+    left: 15px;
+    color: #888;
+    font-size: 0.85rem;
+    font-weight: 600;
+    pointer-events: none;
+    transition: 0.2s ease all;
+    background: #181818; /* fundo igual ao container para recorte limpo */
+    padding: 0 6px;
+    border-radius: 4px;
+    user-select: none;
+  }
+  
+  /* Label flutua quando input focado ou com valor */
+  .login__input.filled + label,
+  .login__input:focus + label,
+  .login__input:not(:placeholder-shown) + label,
+  .idade__input.filled + label,
+  .idade__input:focus + label,
+  .idade__input:not(:placeholder-shown) + label,
+  .des__input.filled + label,
+  .des__input:focus + label,
+  .des__input:not(:placeholder-shown) + label {
+    top: -8px;
+    left: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+  
+
 @keyframes hueShift {
     0%   { filter: hue-rotate(0deg); }
     100% { filter: hue-rotate(360deg); }
 }
+
+
 .material-symbols-outlined {
   font-variation-settings:
   'FILL' 1,
