@@ -419,7 +419,7 @@ chatMessages.addEventListener("click", (e) => {
       // Atualizar conteúdo do modal
       document.getElementById("profileImage").src = avatar;
       document.getElementById("profileName").textContent = name;
-      document.getElementById("profileAge").textContent = `Idade: ${age}`;
+      document.getElementById("profileAge").textContent = `Idade: ${age} anos`;
       document.getElementById("profileDesc").textContent = desc;
   
       // Exibir modal
