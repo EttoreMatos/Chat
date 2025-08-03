@@ -10,18 +10,32 @@
     <link rel="stylesheet" href="./css/style.css">
 
     <title>FastChat</title>
+    
     <script src='https://www.google.com/recaptcha/api.js'></script>
 </head>
 <body>
     
     <section class="container">
+
         <section class="login">
             <h2>Login</h2>
             <img class="Preview-avatar" src="">
             <form class="login__form">
-                <input type="text" class="login__input" placeholder="Seu nome" required />
-                <input type="text" class="idade__input" placeholder="Sua idade(opcional)">
-                <input type="text" class="des__input" placeholder="Descrição(opcional)">
+
+                <div class="input-group">
+                    <input type="text" class="login__input" id="nome" required placeholder=" " />
+                    <label for="nome">Seu nome</label>
+                </div>
+
+                <div class="input-group">
+                    <input type="number" class="idade__input" id="idade" min="10" max="120" placeholder=" ">
+                    <label for="idade">Sua idade (opcional)</label>
+                </div>
+
+                <div class="input-group">
+                    <input type="text" class="des__input" id="des" placeholder=" ">
+                    <label for="des">Descrição(opcional)</label>
+                </div>
 
                 <label class="custom-file-upload">
                     <input type="file" class="login__avatar" accept="image/*" />
@@ -33,10 +47,9 @@
                 <div class="recaptcha-container">
                   <div class="g-recaptcha" data-sitekey="6LeYxYsrAAAAAKHfczL8MgAs1XBXQKQAUgyf7vvJ" data-theme="dark"></div>
                 </div>
-
             </form>
-
         </section>
+
         <section class="cont-top">
             <h2 class="title">FastChat</h2>
             <div class="topo-container">
@@ -102,7 +115,7 @@
         </section>
 
     </section>
-
-    <script src="./js/script.js"></script>
+    
+    <script src="./js/script.js" defer></script>
 </body>
 </html>
