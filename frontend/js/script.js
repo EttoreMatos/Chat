@@ -279,7 +279,7 @@ const handleLogin = async (event) => {
   const token = grecaptcha.getResponse();
   if (!token) {
       alert("Por favor, confirme que você não é um robô.");
-
+      return;
   }
 
   loginBtn.textContent = "Conectando...";
