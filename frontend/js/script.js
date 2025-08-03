@@ -32,7 +32,7 @@ const colors = [
 ];
 // Avatar padrão (círculo preto de 40x40 em PNG Base64)
 const defaultAvatar = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAArklEQVRYR+3WwQ2AIBRE0Sx+kOVZwVYKJ3hTYnSY9TxAIp9R2tHX9vMxNMGkD4C8AgkJgFZgg0YA2gDTAM7kAQA4DRhsMABGY2k3pcoAcNgD2FwB1Z/7x+9hyoDKB7pADaSvIVwlz4Gi6ARHtDT9tgCI4BMCm54A2VbbA9i8A32BpaV7rc3xEvkW2NY+j4c6Rr2nOtu3AqKzNSc0poD02pTbSCau+Kd7kH4Fxoc6+FquFNsAAAAASUVORK5CYII=";
-
+Notification.requestPermission()
 // Evento para mostrar preview do avatar ou padrão
 avatarInput.addEventListener("change", () => {
     const file = avatarInput.files[0];
@@ -82,6 +82,7 @@ const createMessageSelfElement = (content) => {
 };
 
 function createMessageOtherElement(content, sender, senderColor, avatarData) {
+    new Notification("FastChat", {body:`Mensagem de ${sender}:  ${content}`});
     audio_alert.play().catch((e) => {
         console.warn("Não foi possível tocar o som:", e.message);
     });
@@ -166,9 +167,11 @@ const processMessage = ({ data }) => {
     const parsed = JSON.parse(data);
 
     if (parsed.type === "connect") {
+      new Notification("FastChat", {body: `${user.name} entrou no FastChat`});
       audio_connect.play().catch((e) => {
         console.warn("Não foi possível tocar o som:", e.message);
       });
+
       const connectDiv = document.createElement("div");
       connectDiv.classList.add("message--entry");
       connectDiv.textContent = parsed.content;
@@ -185,9 +188,11 @@ const processMessage = ({ data }) => {
     }
     
     if (parsed.type === "disconnect") {
+      new Notification("FastChat", {body: `${user.name} saiu do FastChat`});
       audio_disconnect.play().catch((e) => {
           console.warn("Não foi possível tocar o som:", e.message);
       });
+
       const disconnectDiv = document.createElement("div");
       disconnectDiv.classList.add("message--exit");
       disconnectDiv.textContent = parsed.content;
