@@ -104,7 +104,7 @@ body {
 .login__form {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 20px;
 }
 .idade__input,
 .des__input,
@@ -171,8 +171,8 @@ body {
     pointer-events: none;
     transition: 0.2s ease all;
     background: #181818; /* fundo igual ao container para recorte limpo */
-    padding: 0 6px;
-    border-radius: 4px;
+    padding: 0 3px;
+    border-radius: 7px;
     user-select: none;
   }
   
