@@ -79,10 +79,10 @@ body {
 }
 
 .custom-file-upload {
-    color: rgb(168, 0, 253);
     border: none;
-    padding: 15px;
-    border-radius: 35px;
+    padding: 5px;
+    border-radius: 20px;
+    margin: 3px auto; /* centraliza horizontalmente */
     font-size: 0.85rem;
     font-weight: 700;
     background: linear-gradient(45deg,#d01df0,#1dcdf0);
@@ -90,7 +90,7 @@ body {
     color: #121212;
     transition: 0.3s ease;
     text-align: center;
-  }
+}
   
 .custom-file-upload:hover {
     filter: brightness(1.2);
