@@ -21,6 +21,11 @@
             <h2>Login</h2>
             <img class="Preview-avatar" src="">
             <form class="login__form">
+                
+                <label class="custom-file-upload">
+                    <input type="file" class="login__avatar" accept="image/*" />
+                    Escolher foto do perfil
+                </label>
 
                 <div class="input-group">
                     <input type="text" class="login__input" id="nome" required placeholder=" " />
@@ -36,11 +41,6 @@
                     <input type="text" class="des__input" id="des" placeholder=" ">
                     <label for="des">Descrição(opcional)</label>
                 </div>
-
-                <label class="custom-file-upload">
-                    <input type="file" class="login__avatar" accept="image/*" />
-                    Escolher foto do perfil
-                </label>
 
                 <button type="submit" class="login__button">Entrar</button>
 
