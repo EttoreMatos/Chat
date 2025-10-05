@@ -126,8 +126,7 @@ function createMessageOtherElement(content, sender, senderColor, avatarData) {
 const getRandomColor = () => {
   const name = user.name.trim().toLowerCase();
   if (name === "ettore") return "#00FA9A";
-  if (name === "isabella" || name === "bebella") return "#C71585";
-  if (name === "manu") return "#FF69B4";
+  if (name === "phantom") return "#FF69B4";
   const randomIndex = Math.floor(Math.random() * colors.length);
   return colors[randomIndex];
 };
@@ -235,6 +234,7 @@ const handleLogin = async (event) => {
   const token = grecaptcha.getResponse();
   if (!token) {
     alert("Por favor, confirme que você não é um robô.");
+    return;
   }
 
   loginBtn.textContent = "Conectando...";
