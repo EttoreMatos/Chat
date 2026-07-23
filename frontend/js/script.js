@@ -497,6 +497,36 @@ function createEmbedNode(embed) {
     return wrap;
   }
 
+  const spotify =
+    embed.kind === "spotify" || embed.embedPath || embed.spotifyId
+      ? {
+          type: embed.spotifyType,
+          id: embed.spotifyId,
+          embedPath:
+            embed.embedPath ||
+            (embed.spotifyType && embed.spotifyId
+              ? `${embed.spotifyType}/${embed.spotifyId}`
+              : null),
+        }
+      : spotifyFromUrl(embed.url);
+
+  if (spotify && (spotify.embedPath || (spotify.type && spotify.id))) {
+    const path = spotify.embedPath || `${spotify.type}/${spotify.id}`;
+    const type = spotify.type || path.split("/")[0];
+    const tall = ["album", "playlist", "artist", "show"].includes(type);
+    const wrap = document.createElement("div");
+    wrap.className = `embed embed--spotify${tall ? " embed--spotify-tall" : ""}`;
+    const iframe = document.createElement("iframe");
+    iframe.src = `https://open.spotify.com/embed/${path}?utm_source=generator&theme=0`;
+    iframe.allow =
+      "autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture";
+    iframe.loading = "lazy";
+    iframe.title = embed.title || "Spotify";
+    iframe.setAttribute("frameborder", "0");
+    wrap.appendChild(iframe);
+    return wrap;
+  }
+
   const a = document.createElement("a");
   a.className = "embed embed--link";
   a.href = embed.url;
@@ -776,6 +806,20 @@ async function buildEmbeds(text) {
         title: "YouTube",
         description: "",
         image: `https://i.ytimg.com/vi/${yt}/hqdefault.jpg`,
+      });
+      continue;
+    }
+    const sp = spotifyFromUrl(url);
+    if (sp) {
+      embeds.push({
+        url,
+        kind: "spotify",
+        spotifyType: sp.type,
+        spotifyId: sp.id,
+        embedPath: sp.embedPath,
+        title: "Spotify",
+        description: "",
+        image: null,
       });
       continue;
     }
