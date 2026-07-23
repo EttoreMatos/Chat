@@ -779,6 +779,7 @@ const processMessage = ({ data }) => {
 function iniciarChat() {
   login.hidden = true;
   app.hidden = false;
+  document.body.classList.add("app-open");
 
   topoNome.textContent = user.name;
   topoNome.style.color = user.color;

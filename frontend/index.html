@@ -13,42 +13,45 @@
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body>
-    <section class="login" id="login">
-        <div class="login__brand">
-            <h1>FastChat</h1>
-            <p>Entre e converse em tempo real</p>
-        </div>
-        <img class="Preview-avatar" src="" alt="Prévia do avatar">
-        <form class="login__form">
-            <label class="custom-file-upload">
-                <input type="file" class="login__avatar" accept="image/*" />
-                Escolher foto do perfil
-            </label>
+    <section class="container" id="login">
+        <section class="login">
+            <h2>Login</h2>
+            <img class="Preview-avatar" src="" alt="Prévia do avatar">
+            <form class="login__form">
+                <label class="custom-file-upload">
+                    <input type="file" class="login__avatar" accept="image/*" />
+                    Escolher foto do perfil
+                </label>
 
-            <div class="input-group">
-                <input type="text" class="login__input" id="nome" required placeholder=" " maxlength="32" />
-                <label for="nome">Seu nome</label>
-            </div>
+                <div class="input-group">
+                    <input type="text" class="login__input" id="nome" required placeholder=" " maxlength="32" />
+                    <label for="nome">Seu nome:</label>
+                </div>
 
-            <div class="input-group">
-                <input type="text" class="des__input" id="des" placeholder=" " maxlength="120">
-                <label for="des">Descrição (opcional)</label>
-            </div>
+                <div class="input-group">
+                    <input type="text" class="des__input" id="des" placeholder=" " maxlength="120">
+                    <label for="des">Descrição(opcional):</label>
+                </div>
 
-            <div class="recaptcha-container">
-                <div class="g-recaptcha" data-sitekey="6LeYxYsrAAAAAKHfczL8MgAs1XBXQKQAUgyf7vvJ" data-theme="dark"></div>
-            </div>
+                <button type="submit" class="login__button">Entrar</button>
 
-            <button type="submit" class="login__button">Entrar</button>
-        </form>
+                <div class="recaptcha-container">
+                    <div class="g-recaptcha" data-sitekey="6LeYxYsrAAAAAKHfczL8MgAs1XBXQKQAUgyf7vvJ" data-theme="dark"></div>
+                </div>
+            </form>
+        </section>
     </section>
 
     <div class="app" id="app" hidden>
+        <header class="app__topbar">
+            <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Abrir membros">
+                <span class="material-symbols-outlined">menu</span>
+            </button>
+            <h1 class="app__logo">FastChat</h1>
+            <span class="app__online" id="onlineCount">0 online</span>
+        </header>
+
         <aside class="sidebar">
-            <div class="sidebar__header">
-                <span class="sidebar__logo">FastChat</span>
-                <span class="sidebar__online-count" id="onlineCount">0 online</span>
-            </div>
             <div class="sidebar__section-label">Membros</div>
             <ul class="sidebar__users" id="userList"></ul>
             <div class="sidebar__footer">
@@ -61,13 +64,6 @@
         </aside>
 
         <main class="chat" id="chat">
-            <header class="chat__header">
-                <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Abrir membros">
-                    <span class="material-symbols-outlined">menu</span>
-                </button>
-                <h2 class="title">FastChat</h2>
-            </header>
-
             <section class="chat__messages" id="chatMessages"></section>
 
             <div class="typing-indicator" id="typingIndicator" hidden></div>
