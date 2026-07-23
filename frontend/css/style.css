@@ -58,61 +58,103 @@ button, textarea, input {
     font-family: inherit;
 }
 
-/* ——— Login (estilo original) ——— */
+/* ——— Login ——— */
 
 .container {
     width: 100%;
     height: 100dvh;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 0;
+    padding: 24px;
     position: relative;
     z-index: 100;
 }
 
 .container[hidden] {
-    display: none;
+    display: none !important;
+}
+
+.login__brand {
+    text-align: center;
+    margin-bottom: 12px;
+}
+
+.login__brand h1 {
+    margin: 0;
+    font-family: "Caveat", cursive;
+    font-size: clamp(2.8rem, 8vw, 3.6rem);
+    font-weight: 700;
+    color: #fff;
+    line-height: 1;
+}
+
+.login__brand p {
+    margin-top: 6px;
+    color: #9a9a9a;
+    font-size: 0.95rem;
+}
+
+.Preview-avatar {
+    display: block;
+    width: 96px;
+    height: 96px;
+    object-fit: cover;
+    border-radius: 50%;
+    background-color: #000;
+    border: 3px solid #1dcdf0;
+    margin: 0 auto -48px;
+    position: relative;
+    z-index: 3;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
 }
 
 .login {
     display: block;
     width: 100%;
-    max-width: 330px;
-    background: #181818;
-    border-radius: 10px;
-    padding: 20px;
+    max-width: 340px;
+    background: #000;
+    border-radius: 14px;
+    padding: 56px 22px 22px;
     position: relative;
     z-index: 1;
+    isolation: isolate;
 }
 
-.login > h2 {
-    text-align: center;
-    font-weight: 700;
-    font-size: 1.5rem;
-    margin-bottom: 20px;
-    color: #f2f2f2;
+/* borda colorida animada — centro permanece preto */
+.login::after {
+    --angle: 0deg;
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 14px;
+    padding: 3px;
+    background: conic-gradient(from var(--angle), #d01df0, #1dcdf0, #d01df0);
+    -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    animation: 3s spin linear infinite;
+    z-index: 0;
 }
 
-.login::after,
+/* glow externo, sem pintar o centro */
 .login::before {
     --angle: 0deg;
     content: "";
     position: absolute;
-    height: 100%;
-    width: 100%;
-    border-radius: 10px;
-    background-image: conic-gradient(from var(--angle), #d01df0, #1dcdf0, #d01df0);
-    top: 50%;
-    left: 50%;
-    translate: -50% -50%;
+    inset: -3px;
+    border-radius: 16px;
+    background: conic-gradient(from var(--angle), #d01df0, #1dcdf0, #d01df0);
+    filter: blur(1.4rem);
+    opacity: 0.55;
     z-index: -1;
-    padding: 3px;
     animation: 3s spin linear infinite;
-}
-
-.login::before {
-    filter: blur(1.5rem);
-    opacity: 0.8;
+    pointer-events: none;
 }
 
 @keyframes spin {
@@ -125,29 +167,16 @@ button, textarea, input {
     100% { filter: hue-rotate(360deg); }
 }
 
-.Preview-avatar {
-    display: block;
-    margin: 10px auto;
-    width: 130px;
-    height: 130px;
-    max-width: 150px;
-    max-height: 150px;
-    object-fit: cover;
-    border-radius: 50%;
-    background-color: black;
-}
-
 .login__form {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 18px;
     width: 100%;
     background: transparent;
     border: none;
     padding: 0;
-    box-shadow: none;
-    position: static;
-    isolation: auto;
+    position: relative;
+    z-index: 1;
 }
 
 .login__form::before,
@@ -158,9 +187,9 @@ button, textarea, input {
 .custom-file-upload {
     display: block;
     border: none;
-    padding: 5px 10px;
+    padding: 8px 14px;
     border-radius: 20px;
-    margin: 2px auto;
+    margin: 0 auto;
     font-size: 0.85rem;
     font-weight: 700;
     background: linear-gradient(45deg, #d01df0, #1dcdf0);
@@ -220,7 +249,7 @@ button, textarea, input {
     font-weight: 600;
     pointer-events: none;
     transition: 0.2s ease all;
-    background: #181818;
+    background: #000;
     padding: 0 3px;
     border-radius: 7px;
     user-select: none;
@@ -235,7 +264,7 @@ button, textarea, input {
     font-size: 0.75rem;
     font-weight: 700;
     color: #888;
-    background: #181818;
+    background: #000;
 }
 
 .login__button {
