@@ -837,19 +837,24 @@ button, textarea, input {
     color: var(--accent);
 }
 
+.emoji-picker-wrap {
+    position: relative;
+    flex-shrink: 0;
+}
+
 .sticker-picker {
     position: absolute;
     left: 0;
-    right: 0;
-    bottom: calc(100% + 8px);
-    max-height: 300px;
+    bottom: calc(100% + 6px);
+    width: min(280px, calc(100vw - 24px));
+    max-height: 240px;
     display: flex;
     flex-direction: column;
     overflow: hidden;
     background: #1a1a1a;
     border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 8px 10px 10px;
+    border-radius: 10px;
+    padding: 6px;
     box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
     z-index: 40;
 }
@@ -860,23 +865,27 @@ button, textarea, input {
 
 .sticker-picker__tabs {
     display: flex;
-    gap: 2px;
+    gap: 1px;
     overflow-x: auto;
-    padding-bottom: 6px;
-    margin-bottom: 4px;
+    padding-bottom: 4px;
+    margin-bottom: 2px;
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
-    scrollbar-width: thin;
+    scrollbar-width: none;
+}
+
+.sticker-picker__tabs::-webkit-scrollbar {
+    display: none;
 }
 
 .sticker-picker__tab {
     border: none;
     background: transparent;
     color: var(--text);
-    font-size: 1.15rem;
+    font-size: 1rem;
     line-height: 1;
-    padding: 6px 8px;
-    border-radius: 8px;
+    padding: 4px 5px;
+    border-radius: 6px;
     cursor: pointer;
     flex-shrink: 0;
     opacity: 0.65;
@@ -893,37 +902,38 @@ button, textarea, input {
 }
 
 .sticker-picker__title {
-    font-size: 0.75rem;
+    font-size: 0.68rem;
     color: var(--text-muted);
-    margin-bottom: 6px;
+    margin: 2px 2px 4px;
     text-transform: uppercase;
     letter-spacing: 0.04em;
     flex-shrink: 0;
 }
 
 .sticker-picker__empty {
-    font-size: 0.82rem;
+    font-size: 0.78rem;
     color: var(--text-muted);
-    padding: 16px 8px;
+    padding: 12px 6px;
     text-align: center;
 }
 
 .sticker-picker__grid {
     display: grid;
-    grid-template-columns: repeat(8, 1fr);
-    gap: 4px;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
     overflow: auto;
     min-height: 0;
     flex: 1;
+    scrollbar-width: thin;
 }
 
 .sticker-picker__item {
     border: none;
     background: transparent;
-    font-size: 1.6rem;
+    font-size: 1.25rem;
     cursor: pointer;
-    padding: 6px 2px;
-    border-radius: 8px;
+    padding: 3px 1px;
+    border-radius: 6px;
     line-height: 1;
 }
 

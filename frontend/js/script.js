@@ -1819,6 +1819,7 @@ function toggleAttachMenu() {
 
 function hideStickerPicker() {
   stickerPicker.hidden = true;
+  stickerBtn.setAttribute("aria-expanded", "false");
 }
 
 function toggleStickerPicker() {
@@ -1826,8 +1827,9 @@ function toggleStickerPicker() {
   if (stickerPicker.hidden) {
     buildEmojiPicker();
     stickerPicker.hidden = false;
+    stickerBtn.setAttribute("aria-expanded", "true");
   } else {
-    stickerPicker.hidden = true;
+    hideStickerPicker();
   }
 }
 
@@ -1963,7 +1965,7 @@ document.addEventListener("click", (e) => {
   if (!attachMenu.hidden && !e.target.closest(".attach-menu-wrap")) {
     hideAttachMenu();
   }
-  if (!stickerPicker.hidden && !e.target.closest(".composer-wrap") && !e.target.closest("#stickerBtn")) {
+  if (!stickerPicker.hidden && !e.target.closest(".emoji-picker-wrap")) {
     hideStickerPicker();
   }
 });
