@@ -27,52 +27,79 @@ app.use(cors());
 app.use(express.json({ limit: "1mb" }));
 app.use("/uploads", express.static(UPLOAD_ROOT));
 
-function pickKind(file) {
-  if (file.mimetype.startsWith("image/")) return "images";
-  if (file.mimetype.startsWith("audio/")) return "audio";
-  return null;
-}
-
-function folderForField(fieldname, mimetype) {
-  if (fieldname === "avatar") return "avatars";
-  if (mimetype.startsWith("image/")) return "images";
-  if (mimetype.startsWith("audio/")) return "audio";
-  return null;
-}
-
-const storage = multer.diskStorage({
-  destination(req, file, cb) {
-    const folder = folderForField(file.fieldname, file.mimetype);
-    if (!folder) return cb(new Error("Unsupported file type"));
-    cb(null, DIRS[folder]);
-  },
-  filename(req, file, cb) {
-    const ext = path.extname(file.originalname) || mimeToExt(file.mimetype);
-    cb(null, `${randomUUID()}${ext}`);
-  },
-});
-
 function mimeToExt(mime) {
+  const base = (mime || "").split(";")[0].trim().toLowerCase();
   const map = {
     "image/jpeg": ".jpg",
     "image/png": ".png",
     "image/gif": ".gif",
     "image/webp": ".webp",
     "audio/webm": ".webm",
+    "video/webm": ".webm",
     "audio/ogg": ".ogg",
     "audio/mpeg": ".mp3",
     "audio/wav": ".wav",
     "audio/mp4": ".m4a",
+    "audio/aac": ".m4a",
+    "audio/x-m4a": ".m4a",
   };
-  return map[mime] || "";
+  return map[base] || "";
 }
+
+function isAudioMime(mime) {
+  const m = (mime || "").toLowerCase();
+  return (
+    m.startsWith("audio/") ||
+    m === "video/webm" ||
+    m === "application/octet-stream"
+  );
+}
+
+function isImageMime(mime) {
+  return (mime || "").toLowerCase().startsWith("image/");
+}
+
+function folderForField(fieldname, mimetype, originalname = "") {
+  if (fieldname === "avatar") return "avatars";
+  if (isImageMime(mimetype)) return "images";
+  if (isAudioMime(mimetype)) return "audio";
+  const ext = path.extname(originalname || "").toLowerCase();
+  if ([".webm", ".ogg", ".mp3", ".wav", ".m4a", ".aac", ".mp4"].includes(ext)) {
+    return "audio";
+  }
+  if ([".jpg", ".jpeg", ".png", ".gif", ".webp"].includes(ext)) {
+    return "images";
+  }
+  return null;
+}
+
+const storage = multer.diskStorage({
+  destination(req, file, cb) {
+    const folder = folderForField(
+      file.fieldname,
+      file.mimetype,
+      file.originalname
+    );
+    if (!folder) return cb(new Error("Unsupported file type"));
+    cb(null, DIRS[folder]);
+  },
+  filename(req, file, cb) {
+    const ext =
+      path.extname(file.originalname) || mimeToExt(file.mimetype) || ".bin";
+    cb(null, `${randomUUID()}${ext}`);
+  },
+});
 
 const upload = multer({
   storage,
   limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter(req, file, cb) {
     const ok =
-      file.mimetype.startsWith("image/") || file.mimetype.startsWith("audio/");
+      isImageMime(file.mimetype) ||
+      isAudioMime(file.mimetype) ||
+      Boolean(
+        folderForField(file.fieldname, file.mimetype, file.originalname)
+      );
     cb(ok ? null : new Error("Only image and audio files are allowed"), ok);
   },
 });
@@ -85,8 +112,12 @@ app.post("/upload", (req, res) => {
     if (!req.file) {
       return res.status(400).json({ error: "No file uploaded" });
     }
-    const folder = folderForField(req.file.fieldname, req.file.mimetype);
-    const kind = pickKind(req.file) === "audio" ? "audio" : "image";
+    const folder = folderForField(
+      req.file.fieldname,
+      req.file.mimetype,
+      req.file.originalname
+    );
+    const kind = folder === "audio" ? "audio" : "image";
     const url = `/uploads/${folder}/${req.file.filename}`;
     res.json({ url, kind });
   });

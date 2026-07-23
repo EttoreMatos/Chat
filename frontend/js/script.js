@@ -79,6 +79,9 @@ let pendingAttachment = { file: null, kind: null, previewUrl: null };
 let mediaRecorder = null;
 let recordChunks = [];
 let isRecording = false;
+let recordStream = null;
+let recordMime = "";
+let recordStartedAt = 0;
 
 const typingUsers = new Map();
 let typingClearTimers = new Map();
@@ -88,6 +91,59 @@ let mentionQuery = null;
 
 PreviewAvatar.src = defaultAvatar;
 user.avatar = defaultAvatar;
+
+function pickRecorderMime() {
+  const candidates = [
+    "audio/webm;codecs=opus",
+    "audio/webm",
+    "audio/ogg;codecs=opus",
+    "audio/mp4",
+    "audio/aac",
+  ];
+  return candidates.find((t) => MediaRecorder.isTypeSupported(t)) || "";
+}
+
+function extForAudioMime(mime) {
+  const m = (mime || "").toLowerCase();
+  if (m.includes("mp4") || m.includes("aac") || m.includes("m4a")) return "m4a";
+  if (m.includes("ogg")) return "ogg";
+  if (m.includes("mpeg") || m.includes("mp3")) return "mp3";
+  return "webm";
+}
+
+function stopRecordTracks() {
+  if (recordStream) {
+    recordStream.getTracks().forEach((t) => t.stop());
+    recordStream = null;
+  }
+}
+
+function finishRecording() {
+  isRecording = false;
+  audioBtn.classList.remove("recording");
+  audioBtnIcon.textContent = "mic";
+  audioBtn.title = "Gravar áudio";
+
+  const mimeType =
+    (mediaRecorder && mediaRecorder.mimeType) || recordMime || "audio/webm";
+  const cleanType = mimeType.split(";")[0] || "audio/webm";
+  const blob = new Blob(recordChunks, { type: cleanType });
+  recordChunks = [];
+  mediaRecorder = null;
+  stopRecordTracks();
+
+  const elapsed = Date.now() - recordStartedAt;
+  if (elapsed < 400 || blob.size < 200) {
+    alert("Áudio muito curto. Grave um pouco mais antes de parar.");
+    return;
+  }
+
+  const ext = extForAudioMime(cleanType);
+  const file = new File([blob], `audio-${Date.now()}.${ext}`, {
+    type: cleanType,
+  });
+  setPendingAttachment(file, "audio");
+}
 
 function mediaUrl(path) {
   if (!path) return defaultAvatar;
@@ -466,7 +522,16 @@ function createAttachmentNodes(attachments) {
       audio.className = "chat-audio";
       audio.controls = true;
       audio.preload = "metadata";
-      audio.src = mediaUrl(att.url);
+      const src = mediaUrl(att.url);
+      audio.src = src;
+      // ajuda browsers a escolher o decoder certo
+      const source = document.createElement("source");
+      source.src = src;
+      if (src.endsWith(".m4a") || src.endsWith(".mp4")) source.type = "audio/mp4";
+      else if (src.endsWith(".ogg")) source.type = "audio/ogg";
+      else if (src.endsWith(".mp3")) source.type = "audio/mpeg";
+      else source.type = "audio/webm";
+      audio.appendChild(source);
       frag.appendChild(audio);
     } else {
       const img = document.createElement("img");
@@ -877,49 +942,64 @@ const sendMessage = async (event) => {
 
 async function toggleRecording() {
   if (isRecording && mediaRecorder) {
-    mediaRecorder.stop();
+    if (mediaRecorder.state === "recording" || mediaRecorder.state === "paused") {
+      try {
+        mediaRecorder.requestData();
+      } catch {
+        /* ignore */
+      }
+      mediaRecorder.stop();
+    }
+    return;
+  }
+
+  if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
+    alert("Seu navegador não suporte gravação de áudio.");
     return;
   }
 
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    recordStream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+      },
+    });
     recordChunks = [];
-    const mime = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
-      ? "audio/webm;codecs=opus"
-      : MediaRecorder.isTypeSupported("audio/webm")
-        ? "audio/webm"
-        : "";
+    recordMime = pickRecorderMime();
 
-    mediaRecorder = mime
-      ? new MediaRecorder(stream, { mimeType: mime })
-      : new MediaRecorder(stream);
+    mediaRecorder = recordMime
+      ? new MediaRecorder(recordStream, { mimeType: recordMime })
+      : new MediaRecorder(recordStream);
 
     mediaRecorder.ondataavailable = (e) => {
-      if (e.data.size > 0) recordChunks.push(e.data);
+      if (e.data && e.data.size > 0) recordChunks.push(e.data);
     };
 
-    mediaRecorder.onstop = () => {
-      stream.getTracks().forEach((t) => t.stop());
+    mediaRecorder.onerror = () => {
+      stopRecordTracks();
       isRecording = false;
       audioBtn.classList.remove("recording");
       audioBtnIcon.textContent = "mic";
-
-      const blob = new Blob(recordChunks, {
-        type: mediaRecorder.mimeType || "audio/webm",
-      });
-      if (blob.size < 100) return;
-      const file = new File([blob], `audio-${Date.now()}.webm`, {
-        type: blob.type,
-      });
-      setPendingAttachment(file, "audio");
+      alert("Erro ao gravar o áudio.");
     };
 
-    mediaRecorder.start();
+    mediaRecorder.onstop = () => {
+      // espera o último dataavailable chegar (race comum em alguns browsers)
+      setTimeout(finishRecording, 80);
+    };
+
+    mediaRecorder.start(250);
     isRecording = true;
+    recordStartedAt = Date.now();
     audioBtn.classList.add("recording");
     audioBtnIcon.textContent = "stop";
-  } catch {
-    alert("Não foi possível acessar o microfone.");
+    audioBtn.title = "Parar gravação";
+  } catch (err) {
+    stopRecordTracks();
+    console.error(err);
+    alert("Não foi possível acessar o microfone. Verifique a permissão do site.");
   }
 }
 
