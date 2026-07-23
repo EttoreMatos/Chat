@@ -22,7 +22,7 @@
     --font-display: "Space Grotesk", "Outfit", sans-serif;
     --header-h: 56px;
     --composer-h: 72px;
-    --sidebar-w: 260px;
+    --sidebar-w: 200px;
 }
 
 @property --angle {
@@ -80,11 +80,11 @@ button, textarea, input {
 }
 
 .login__brand h1 {
-    font-family: var(--font-display);
-    font-size: clamp(2.4rem, 6vw, 3.2rem);
+    font-family: "Caveat", cursive;
+    font-size: clamp(2.8rem, 8vw, 3.6rem);
     font-weight: 700;
-    letter-spacing: -0.03em;
-    color: var(--text);
+    letter-spacing: 0;
+    color: #fff;
 }
 
 .login__brand p {
@@ -96,10 +96,11 @@ button, textarea, input {
 .login__form {
     width: 100%;
     max-width: 360px;
-    background: var(--bg-panel);
-    border: 1px solid transparent;
+    background: #181818;
+    border: none;
     border-radius: 16px;
     padding: 28px 24px;
+    padding-top: 56px;
     display: flex;
     flex-direction: column;
     gap: 14px;
@@ -107,28 +108,44 @@ button, textarea, input {
     animation: loginIn 0.45s ease-out;
     position: relative;
     z-index: 1;
+    isolation: isolate;
 }
 
-.login__form::after,
+.login__form > * {
+    position: relative;
+    z-index: 1;
+}
+
+.login__form::after {
+    --angle: 0deg;
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    padding: 3px;
+    background: conic-gradient(from var(--angle), #d01df0, #1dcdf0, #d01df0);
+    -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    animation: 3s spin linear infinite;
+    z-index: 0;
+}
+
 .login__form::before {
     --angle: 0deg;
     content: "";
     position: absolute;
-    height: 100%;
-    width: 100%;
-    border-radius: 16px;
-    background-image: conic-gradient(from var(--angle), #d01df0, #1dcdf0, #d01df0);
-    top: 50%;
-    left: 50%;
-    translate: -50% -50%;
-    z-index: -1;
-    padding: 3px;
-    animation: 3s spin linear infinite;
-}
-
-.login__form::before {
+    inset: -2px;
+    border-radius: 18px;
+    background: conic-gradient(from var(--angle), #d01df0, #1dcdf0, #d01df0);
     filter: blur(1.5rem);
-    opacity: 0.8;
+    opacity: 0.55;
+    z-index: -1;
+    animation: 3s spin linear infinite;
+    pointer-events: none;
 }
 
 @keyframes spin {
@@ -150,12 +167,9 @@ button, textarea, input {
     margin-bottom: -52px;
     position: relative;
     z-index: 2;
-    background: var(--bg-elevated);
+    background: #000;
+    color: transparent;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-}
-
-.login__form {
-    padding-top: 56px;
 }
 
 .custom-file-upload {
@@ -165,16 +179,18 @@ button, textarea, input {
     border-radius: 999px;
     font-size: 0.85rem;
     font-weight: 600;
-    background: var(--accent-grad);
-    color: #121212;
+    color: #f2f2f2;
     cursor: pointer;
-    border: 1px solid transparent;
-    transition: filter 0.2s, box-shadow 0.2s;
+    border: 2px solid transparent;
+    background:
+        linear-gradient(#181818, #181818) padding-box,
+        linear-gradient(45deg, #d01df0, #1dcdf0) border-box;
+    transition: box-shadow 0.2s, filter 0.2s;
 }
 
 .custom-file-upload:hover {
-    filter: brightness(1.15);
-    box-shadow: 0 0 15px #0ef;
+    filter: brightness(1.1);
+    box-shadow: 0 0 15px rgba(14, 238, 255, 0.45);
 }
 
 .custom-file-upload input {
@@ -225,10 +241,12 @@ button, textarea, input {
 .login__button {
     margin-top: 4px;
     padding: 12px;
-    border: none;
     border-radius: 999px;
-    background: var(--accent-grad);
-    color: #121212;
+    border: 2px solid transparent;
+    background:
+        linear-gradient(#181818, #181818) padding-box,
+        linear-gradient(45deg, #d01df0, #1dcdf0) border-box;
+    color: #f2f2f2;
     font-weight: 700;
     font-size: 1rem;
     cursor: pointer;
@@ -236,8 +254,8 @@ button, textarea, input {
 }
 
 .login__button:hover {
-    filter: brightness(1.15);
-    box-shadow: 0 0 15px #0ef;
+    filter: brightness(1.1);
+    box-shadow: 0 0 15px rgba(14, 238, 255, 0.45);
 }
 
 .login__button:active {
@@ -291,10 +309,11 @@ button, textarea, input {
 }
 
 .sidebar__logo {
-    font-family: var(--font-display);
+    font-family: "Caveat", cursive;
     font-weight: 700;
-    font-size: 1.15rem;
-    letter-spacing: -0.02em;
+    font-size: 1.75rem;
+    letter-spacing: 0;
+    line-height: 1;
 }
 
 .sidebar__online-count {
@@ -428,7 +447,7 @@ button, textarea, input {
     gap: 10px;
     padding: 0 20px;
     border-bottom: 1px solid var(--border);
-    background: rgba(20, 27, 36, 0.85);
+    background: rgba(25, 25, 25, 0.9);
     backdrop-filter: blur(8px);
 }
 
@@ -441,15 +460,13 @@ button, textarea, input {
     padding: 4px;
 }
 
-.chat__header-text .title {
-    font-family: var(--font-display);
-    font-size: 1.05rem;
+.chat__header .title {
+    margin: 0;
+    font-family: "Caveat", cursive;
+    font-size: 2rem;
     font-weight: 700;
-}
-
-.chat__subtitle {
-    font-size: 0.75rem;
-    color: var(--text-muted);
+    color: #fff;
+    line-height: 1;
 }
 
 .chat__messages {
@@ -724,11 +741,18 @@ button, textarea, input {
 .chat__form {
     flex-shrink: 0;
     display: flex;
-    align-items: flex-end;
-    gap: 8px;
-    padding: 12px 16px 16px;
-    background: rgba(20, 27, 36, 0.9);
-    border-top: 1px solid var(--border);
+    align-items: center;
+    gap: 10px;
+    margin: 0 12px 12px;
+    padding: 12px 18px;
+    background: #191919;
+    border-radius: 30px;
+    border: none;
+    transition: box-shadow 0.3s ease;
+}
+
+.chat__form:focus-within {
+    box-shadow: 0 0 14px #0ef;
 }
 
 .chat__attach {
@@ -736,24 +760,26 @@ button, textarea, input {
     width: 40px;
     height: 40px;
     border: none;
-    border-radius: 10px;
-    background: var(--bg-composer);
-    color: var(--text-muted);
+    border-radius: 50%;
+    background: transparent;
+    color: #f2f2f2;
     cursor: pointer;
     display: grid;
     place-items: center;
-    transition: color 0.15s, background 0.15s;
+    transition: color 0.15s, filter 0.15s;
 }
 
 .chat__attach:hover {
-    color: var(--accent);
-    background: var(--accent-soft);
+    color: #0ef;
+    background: transparent;
+    filter: drop-shadow(0 0 6px #0ef);
 }
 
 .chat__attach.recording {
     color: #fff;
     background: var(--danger);
     animation: pulseRec 1s ease infinite;
+    filter: none;
 }
 
 @keyframes pulseRec {
@@ -765,42 +791,48 @@ button, textarea, input {
     min-height: 40px;
     max-height: 120px;
     resize: none;
-    padding: 10px 14px;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    background: var(--bg-composer);
-    color: var(--text);
-    font-size: 0.95rem;
+    padding: 8px;
+    border-radius: 8px;
+    border: none;
+    background: #191919;
+    color: #f2f2f2;
+    font-size: 1rem;
     line-height: 1.4;
     outline: none;
 }
 
 .chat__input:focus {
-    border-color: rgba(29, 205, 240, 0.5);
+    border: none;
+    outline: none;
 }
 
 .chat__button {
     flex-shrink: 0;
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     border: none;
-    border-radius: 10px;
-    background: var(--accent-grad);
-    color: #121212;
+    border-radius: 50%;
+    background: none;
+    color: #f2f2f2;
     cursor: pointer;
     display: grid;
     place-items: center;
-    transition: filter 0.15s, box-shadow 0.15s;
+    transition: color 0.15s, filter 0.15s;
 }
 
 .chat__button:hover {
-    filter: brightness(1.1);
-    box-shadow: 0 0 12px rgba(29, 205, 240, 0.45);
+    color: #0ef;
+    filter: drop-shadow(0 0 6px #0ef);
+}
+
+.chat__button .material-symbols-outlined {
+    font-size: 1.8rem;
 }
 
 .chat__button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+    filter: none;
 }
 
 /* ——— Modals ——— */
@@ -916,7 +948,7 @@ button, textarea, input {
 
 .typing-indicator {
     min-height: 22px;
-    padding: 0 20px 4px;
+    padding: 0 24px 6px;
     font-size: 0.8rem;
     color: var(--text-muted);
     font-style: italic;

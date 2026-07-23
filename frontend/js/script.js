@@ -175,6 +175,40 @@ function youtubeIdFromUrl(url) {
   return null;
 }
 
+function spotifyFromUrl(url) {
+  try {
+    const u = new URL(url);
+    if (!u.hostname.includes("spotify.com")) return null;
+    const parts = u.pathname.split("/").filter(Boolean);
+    const types = new Set([
+      "track",
+      "album",
+      "playlist",
+      "episode",
+      "show",
+      "artist",
+    ]);
+    let type;
+    let id;
+    if (parts[0] === "embed" && parts[1] && parts[2]) {
+      type = parts[1];
+      id = parts[2].split("?")[0];
+    } else {
+      for (let i = 0; i < parts.length - 1; i++) {
+        if (types.has(parts[i])) {
+          type = parts[i];
+          id = parts[i + 1].split("?")[0];
+          break;
+        }
+      }
+    }
+    if (!type || !id) return null;
+    return { type, id, embedPath: `${type}/${id}` };
+  } catch {
+    return null;
+  }
+}
+
 async function uploadFile(file, asAvatar = false) {
   const form = new FormData();
   if (asAvatar) {
