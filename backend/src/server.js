@@ -320,6 +320,42 @@ const wss = new WebSocketServer({ server });
 
 /** @type {Map<import("ws").WebSocket, object>} */
 const clients = new Map();
+/** @type {Map<string, NodeJS.Timeout>} */
+const pendingDisconnects = new Map();
+
+const DISCONNECT_GRACE_MS = Number(process.env.DISCONNECT_GRACE_MS || 8000);
+const UPLOAD_MAX_AGE_MS =
+  Number(process.env.UPLOAD_MAX_AGE_HOURS || 72) * 60 * 60 * 1000;
+const UPLOAD_CLEANUP_INTERVAL_MS =
+  Number(process.env.UPLOAD_CLEANUP_INTERVAL_MIN || 60) * 60 * 1000;
+
+function cleanupOldUploads() {
+  const now = Date.now();
+  let removed = 0;
+  for (const dir of Object.values(DIRS)) {
+    let names;
+    try {
+      names = fs.readdirSync(dir);
+    } catch {
+      continue;
+    }
+    for (const name of names) {
+      const full = path.join(dir, name);
+      try {
+        const st = fs.statSync(full);
+        if (st.isFile() && now - st.mtimeMs > UPLOAD_MAX_AGE_MS) {
+          fs.unlinkSync(full);
+          removed += 1;
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+  }
+  if (removed) {
+    console.log(`[cleanup] removed ${removed} upload(s) older than ${UPLOAD_MAX_AGE_MS / 3600000}h`);
+  }
+}
 
 function presenceList() {
   return [...clients.values()];
@@ -345,6 +381,41 @@ function sendPresence() {
   broadcastAll({ type: "presence", users: presenceList() });
 }
 
+function cancelPendingDisconnect(userId) {
+  if (!userId) return;
+  const t = pendingDisconnects.get(userId);
+  if (t) {
+    clearTimeout(t);
+    pendingDisconnects.delete(userId);
+  }
+}
+
+function scheduleDisconnect(user) {
+  cancelPendingDisconnect(user.userId);
+  const timer = setTimeout(() => {
+    pendingDisconnects.delete(user.userId);
+    const stillOnline = [...clients.values()].some(
+      (u) => u.userId === user.userId
+    );
+    if (stillOnline) {
+      sendPresence();
+      return;
+    }
+    const agora = new Date();
+    const horario = `${String(agora.getHours()).padStart(2, "0")}:${String(
+      agora.getMinutes()
+    ).padStart(2, "0")}`;
+    broadcastAll({
+      type: "disconnect",
+      userId: user.userId,
+      userName: user.userName,
+      content: `${user.userName} saiu do chat às ${horario}`,
+    });
+    sendPresence();
+  }, DISCONNECT_GRACE_MS);
+  pendingDisconnects.set(user.userId, timer);
+}
+
 wss.on("connection", (ws) => {
   console.log("client connected");
 
@@ -368,12 +439,15 @@ wss.on("connection", (ws) => {
         userAvatar: msg.userAvatar || "",
         userDesc: msg.userDesc || "",
       };
+      cancelPendingDisconnect(user.userId);
       clients.set(ws, user);
-      broadcastAll({
-        type: "connect",
-        ...user,
-        content: msg.content || `${msg.userName} entrou no chat`,
-      });
+      if (!msg.reconnect) {
+        broadcastAll({
+          type: "connect",
+          ...user,
+          content: msg.content || `${msg.userName} entrou no chat`,
+        });
+      }
       sendPresence();
       return;
     }
@@ -381,6 +455,7 @@ wss.on("connection", (ws) => {
     if (msg.type === "disconnect") {
       const user = clients.get(ws);
       clients.delete(ws);
+      cancelPendingDisconnect(user?.userId);
       broadcastAll({
         type: "disconnect",
         userId: user?.userId,
@@ -434,21 +509,18 @@ wss.on("connection", (ws) => {
     const user = clients.get(ws);
     if (user) {
       clients.delete(ws);
-      const agora = new Date();
-      const horario = `${String(agora.getHours()).padStart(2, "0")}:${String(
-        agora.getMinutes()
-      ).padStart(2, "0")}`;
-      broadcastAll({
-        type: "disconnect",
-        userId: user.userId,
-        userName: user.userName,
-        content: `${user.userName} saiu do chat às ${horario}`,
-      });
+      scheduleDisconnect(user);
       sendPresence();
     }
   });
 });
 
+cleanupOldUploads();
+setInterval(cleanupOldUploads, UPLOAD_CLEANUP_INTERVAL_MS);
+
 server.listen(PORT, () => {
   console.log(`FastChat server listening on ${PORT}`);
+  console.log(
+    `Upload cleanup: max age ${UPLOAD_MAX_AGE_MS / 3600000}h, every ${UPLOAD_CLEANUP_INTERVAL_MS / 60000}min`
+  );
 });

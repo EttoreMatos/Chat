@@ -338,6 +338,7 @@ button, textarea, input {
     background: rgba(18, 18, 18, 0.55);
     backdrop-filter: blur(10px);
     border: none;
+    position: relative;
 }
 
 .app[hidden] {
@@ -353,6 +354,40 @@ button, textarea, input {
     background: #191919;
     border-bottom: 1px solid var(--border);
     z-index: 50;
+    position: relative;
+}
+
+.reconnect-banner {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    z-index: 55;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: rgba(28, 22, 8, 0.96);
+    border-bottom: 1px solid rgba(255, 186, 72, 0.35);
+    color: #ffd27a;
+    font-size: 0.85rem;
+    font-weight: 500;
+    pointer-events: none;
+}
+
+.reconnect-banner[hidden] {
+    display: none !important;
+}
+
+.reconnect-banner .material-symbols-outlined {
+    font-size: 18px;
+    animation: reconnect-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes reconnect-pulse {
+    0%, 100% { opacity: 0.55; }
+    50% { opacity: 1; }
 }
 
 .app__logo {
@@ -807,12 +842,14 @@ button, textarea, input {
     left: 0;
     right: 0;
     bottom: calc(100% + 8px);
-    max-height: 280px;
-    overflow: auto;
+    max-height: 300px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
     background: #1a1a1a;
     border: 1px solid var(--border);
     border-radius: 12px;
-    padding: 10px;
+    padding: 8px 10px 10px;
     box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
     z-index: 40;
 }
@@ -821,18 +858,63 @@ button, textarea, input {
     display: none;
 }
 
+.sticker-picker__tabs {
+    display: flex;
+    gap: 2px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    scrollbar-width: thin;
+}
+
+.sticker-picker__tab {
+    border: none;
+    background: transparent;
+    color: var(--text);
+    font-size: 1.15rem;
+    line-height: 1;
+    padding: 6px 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    flex-shrink: 0;
+    opacity: 0.65;
+}
+
+.sticker-picker__tab:hover {
+    background: rgba(255, 255, 255, 0.08);
+    opacity: 1;
+}
+
+.sticker-picker__tab.is-active {
+    background: rgba(29, 205, 240, 0.15);
+    opacity: 1;
+}
+
 .sticker-picker__title {
     font-size: 0.75rem;
     color: var(--text-muted);
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     text-transform: uppercase;
     letter-spacing: 0.04em;
+    flex-shrink: 0;
+}
+
+.sticker-picker__empty {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    padding: 16px 8px;
+    text-align: center;
 }
 
 .sticker-picker__grid {
     display: grid;
     grid-template-columns: repeat(8, 1fr);
     gap: 4px;
+    overflow: auto;
+    min-height: 0;
+    flex: 1;
 }
 
 .sticker-picker__item {
