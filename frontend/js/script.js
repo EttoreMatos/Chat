@@ -53,6 +53,8 @@ const mentionPopup = document.getElementById("mentionPopup");
 
 const imageInput = document.getElementById("imageInput");
 const imageBtn = document.getElementById("imageBtn");
+const audioInput = document.getElementById("audioInput");
+const audioFileBtn = document.getElementById("audioFileBtn");
 const audioBtn = document.getElementById("audioBtn");
 const audioBtnIcon = document.getElementById("audioBtnIcon");
 const previewBar = document.getElementById("previewBar");
@@ -139,7 +141,7 @@ function finishRecording() {
   }
 
   const ext = extForAudioMime(cleanType);
-  const file = new File([blob], `audio-${Date.now()}.${ext}`, {
+  const file = new File([blob], `mensagem-de-voz.${ext}`, {
     type: cleanType,
   });
   setPendingAttachment(file, "audio");
@@ -301,6 +303,7 @@ function clearPendingAttachment() {
   previewMedia.innerHTML = "";
   previewBar.hidden = true;
   imageInput.value = "";
+  if (audioInput) audioInput.value = "";
 }
 
 function setPendingAttachment(file, kind) {
@@ -314,6 +317,10 @@ function setPendingAttachment(file, kind) {
     img.alt = "Prévia";
     previewMedia.appendChild(img);
   } else {
+    const chip = document.createElement("div");
+    chip.className = "preview-audio-chip";
+    chip.innerHTML = `<span class="material-symbols-outlined">graphic_eq</span><span>${file.name || "Áudio"}</span>`;
+    previewMedia.appendChild(chip);
     const audio = document.createElement("audio");
     audio.controls = true;
     audio.src = previewUrl;
@@ -513,26 +520,134 @@ function createSystemMessage(text, type, dataset = {}) {
   return div;
 }
 
+function formatDuration(sec) {
+  if (!Number.isFinite(sec) || sec < 0) return "0:00";
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${m}:${String(s).padStart(2, "0")}`;
+}
+
+function createAudioPlayer(url, name) {
+  const wrap = document.createElement("div");
+  wrap.className = "audio-msg";
+
+  const playBtn = document.createElement("button");
+  playBtn.type = "button";
+  playBtn.className = "audio-msg__play";
+  playBtn.setAttribute("aria-label", "Reproduzir áudio");
+  playBtn.innerHTML = `<span class="material-symbols-outlined">play_arrow</span>`;
+
+  const body = document.createElement("div");
+  body.className = "audio-msg__body";
+
+  const wave = document.createElement("div");
+  wave.className = "audio-msg__wave";
+  wave.setAttribute("aria-hidden", "true");
+  for (let i = 0; i < 24; i++) {
+    const bar = document.createElement("span");
+    bar.style.setProperty("--h", `${30 + ((i * 37) % 70)}%`);
+    wave.appendChild(bar);
+  }
+
+  const progress = document.createElement("div");
+  progress.className = "audio-msg__progress";
+  const fill = document.createElement("div");
+  fill.className = "audio-msg__progress-fill";
+  progress.appendChild(fill);
+
+  const meta = document.createElement("div");
+  meta.className = "audio-msg__meta";
+  const label = document.createElement("span");
+  label.className = "audio-msg__label";
+  label.textContent = name || "Áudio";
+  const time = document.createElement("span");
+  time.className = "audio-msg__time";
+  time.textContent = "0:00";
+  meta.append(label, time);
+
+  body.append(wave, progress, meta);
+
+  const audio = document.createElement("audio");
+  audio.preload = "metadata";
+  audio.src = url;
+  const source = document.createElement("source");
+  source.src = url;
+  if (url.endsWith(".m4a") || url.endsWith(".mp4")) source.type = "audio/mp4";
+  else if (url.endsWith(".ogg")) source.type = "audio/ogg";
+  else if (url.endsWith(".mp3")) source.type = "audio/mpeg";
+  else source.type = "audio/webm";
+  audio.appendChild(source);
+
+  const icon = playBtn.querySelector(".material-symbols-outlined");
+
+  const syncProgress = () => {
+    const dur = audio.duration || 0;
+    const cur = audio.currentTime || 0;
+    const pct = dur ? (cur / dur) * 100 : 0;
+    fill.style.width = `${pct}%`;
+    time.textContent = dur
+      ? `${formatDuration(cur)} / ${formatDuration(dur)}`
+      : formatDuration(cur);
+  };
+
+  playBtn.addEventListener("click", () => {
+    document.querySelectorAll(".audio-msg audio").forEach((other) => {
+      if (other !== audio && !other.paused) {
+        other.pause();
+        const otherWrap = other.closest(".audio-msg");
+        otherWrap?.classList.remove("is-playing");
+        const otherIcon = otherWrap?.querySelector(
+          ".audio-msg__play .material-symbols-outlined"
+        );
+        if (otherIcon) otherIcon.textContent = "play_arrow";
+      }
+    });
+
+    if (audio.paused) {
+      audio.play().catch(() => {});
+    } else {
+      audio.pause();
+    }
+  });
+
+  audio.addEventListener("play", () => {
+    wrap.classList.add("is-playing");
+    icon.textContent = "pause";
+  });
+  audio.addEventListener("pause", () => {
+    wrap.classList.remove("is-playing");
+    icon.textContent = "play_arrow";
+  });
+  audio.addEventListener("ended", () => {
+    wrap.classList.remove("is-playing");
+    icon.textContent = "play_arrow";
+    fill.style.width = "0%";
+    time.textContent = formatDuration(audio.duration || 0);
+  });
+  audio.addEventListener("loadedmetadata", syncProgress);
+  audio.addEventListener("timeupdate", syncProgress);
+
+  progress.addEventListener("click", (e) => {
+    const rect = progress.getBoundingClientRect();
+    const ratio = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
+    if (Number.isFinite(audio.duration)) {
+      audio.currentTime = ratio * audio.duration;
+      syncProgress();
+    }
+  });
+
+  wrap.append(playBtn, body, audio);
+  return wrap;
+}
+
 function createAttachmentNodes(attachments) {
   const frag = document.createDocumentFragment();
   for (const att of attachments || []) {
     if (!att?.url) continue;
     if (att.kind === "audio") {
-      const audio = document.createElement("audio");
-      audio.className = "chat-audio";
-      audio.controls = true;
-      audio.preload = "metadata";
-      const src = mediaUrl(att.url);
-      audio.src = src;
-      // ajuda browsers a escolher o decoder certo
-      const source = document.createElement("source");
-      source.src = src;
-      if (src.endsWith(".m4a") || src.endsWith(".mp4")) source.type = "audio/mp4";
-      else if (src.endsWith(".ogg")) source.type = "audio/ogg";
-      else if (src.endsWith(".mp3")) source.type = "audio/mpeg";
-      else source.type = "audio/webm";
-      audio.appendChild(source);
-      frag.appendChild(audio);
+      const rawName = att.name || att.url.split("/").pop() || "Áudio";
+      const name = rawName.replace(/\.[^.]+$/, "") || "Áudio";
+      frag.appendChild(createAudioPlayer(mediaUrl(att.url), name));
     } else {
       const img = document.createElement("img");
       img.className = "chat-image";
@@ -645,22 +760,16 @@ function createMessageElement(msg, isSelf) {
   const body = document.createElement("div");
   body.className = "message-body";
 
-  const meta = document.createElement("div");
-  meta.className = "message-meta";
-
   if (!isSelf) {
+    const meta = document.createElement("div");
+    meta.className = "message-meta";
     const sender = document.createElement("span");
     sender.className = "message--sender";
     sender.textContent = msg.userName || "";
     if (msg.userColor) sender.style.color = msg.userColor;
     meta.appendChild(sender);
+    body.appendChild(meta);
   }
-
-  const hour = document.createElement("span");
-  hour.className = "hour";
-  hour.textContent = nowTime();
-  meta.appendChild(hour);
-  body.appendChild(meta);
 
   const bubble = document.createElement("div");
   bubble.className = "message-bubble";
@@ -679,7 +788,6 @@ function createMessageElement(msg, isSelf) {
     bubble.appendChild(textEl);
   }
 
-  // legacy base64 image in content
   if (
     (!msg.attachments || !msg.attachments.length) &&
     typeof msg.content === "string" &&
@@ -700,6 +808,11 @@ function createMessageElement(msg, isSelf) {
     const node = createEmbedNode(emb);
     if (node) bubble.appendChild(node);
   }
+
+  const hour = document.createElement("span");
+  hour.className = "hour hour--inside";
+  hour.textContent = nowTime();
+  bubble.appendChild(hour);
 
   body.appendChild(bubble);
   row.appendChild(body);
@@ -911,9 +1024,16 @@ const sendMessage = async (event) => {
     const attachments = [];
     if (hasAttachment) {
       const uploaded = await uploadFile(pendingAttachment.file, false);
+      const rawName = pendingAttachment.file.name || "";
+      const displayName =
+        pendingAttachment.kind === "audio" &&
+        (/^mensagem-de-voz/i.test(rawName) || /^audio-/i.test(rawName))
+          ? "Mensagem de voz"
+          : rawName.replace(/\.[^.]+$/, "") || undefined;
       attachments.push({
         kind: pendingAttachment.kind || uploaded.kind,
         url: uploaded.url,
+        name: displayName,
       });
       clearPendingAttachment();
     }
@@ -1039,6 +1159,18 @@ imageInput.addEventListener("change", () => {
   const file = imageInput.files[0];
   if (!file) return;
   setPendingAttachment(file, "image");
+});
+
+audioFileBtn.addEventListener("click", () => audioInput.click());
+audioInput.addEventListener("change", () => {
+  const file = audioInput.files[0];
+  if (!file) return;
+  if (!file.type.startsWith("audio/") && !/\.(mp3|ogg|wav|m4a|webm|aac)$/i.test(file.name)) {
+    alert("Selecione um arquivo de áudio válido.");
+    audioInput.value = "";
+    return;
+  }
+  setPendingAttachment(file, "audio");
 });
 
 audioBtn.addEventListener("click", toggleRecording);

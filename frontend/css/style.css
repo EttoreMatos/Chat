@@ -276,6 +276,9 @@ button, textarea, input {
     display: grid;
     grid-template-columns: var(--sidebar-w) 1fr;
     grid-template-rows: var(--header-h) 1fr;
+    grid-template-areas:
+        "topbar topbar"
+        "sidebar chat";
     height: 100dvh;
     width: 100%;
     max-width: 1400px;
@@ -287,11 +290,11 @@ button, textarea, input {
 }
 
 .app[hidden] {
-    display: none;
+    display: none !important;
 }
 
 .app__topbar {
-    grid-column: 1 / -1;
+    grid-area: topbar;
     display: flex;
     align-items: center;
     gap: 12px;
@@ -322,6 +325,7 @@ button, textarea, input {
 /* ——— Sidebar ——— */
 
 .sidebar {
+    grid-area: sidebar;
     display: flex;
     flex-direction: column;
     background: var(--bg-sidebar);
@@ -441,11 +445,19 @@ button, textarea, input {
 /* ——— Chat main ——— */
 
 .chat {
+    grid-area: chat;
     display: flex;
     flex-direction: column;
     min-width: 0;
     min-height: 0;
     background: transparent;
+}
+
+/* garante que não volte um segundo título no chat */
+.chat__header,
+.sidebar__header,
+.sidebar__logo {
+    display: none !important;
 }
 
 .sidebar-toggle {
@@ -519,19 +531,18 @@ button, textarea, input {
     font-size: 0.85rem;
 }
 
-.hour {
-    font-size: 0.7rem;
-    color: var(--text-muted);
-}
-
 .message-bubble {
-    padding: 10px 14px;
+    padding: 10px 14px 8px;
     border-radius: var(--radius);
     background: var(--other-bubble);
     border: 1px solid var(--border);
     word-break: break-word;
     line-height: 1.45;
     font-size: 0.95rem;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 120px;
 }
 
 .message-row--self .message-bubble {
@@ -539,6 +550,25 @@ button, textarea, input {
     color: var(--self-text);
     border-color: transparent;
     border-radius: 12px 12px 0 12px;
+}
+
+.hour {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+}
+
+.hour--inside {
+    display: block;
+    align-self: flex-end;
+    margin-top: 4px;
+    opacity: 0.85;
+    line-height: 1;
+    font-size: 0.68rem;
+    order: 99;
+}
+
+.message-row--self .hour--inside {
+    color: rgba(18, 18, 18, 0.55);
 }
 
 .message-row--self .message-text a {
@@ -614,16 +644,158 @@ button, textarea, input {
     max-width: min(320px, 70vw);
     max-height: 280px;
     border-radius: 8px;
-    margin-top: 6px;
     cursor: zoom-in;
     object-fit: cover;
 }
 
-.chat-audio {
-    display: block;
-    width: min(280px, 70vw);
-    margin-top: 6px;
-    height: 40px;
+.audio-msg {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: min(280px, 72vw);
+    padding: 8px 10px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(208, 29, 240, 0.12), rgba(29, 205, 240, 0.12));
+    border: 1px solid rgba(29, 205, 240, 0.25);
+}
+
+.message-row--self .audio-msg {
+    background: linear-gradient(135deg, rgba(208, 29, 240, 0.1), rgba(29, 205, 240, 0.18));
+    border-color: rgba(18, 18, 18, 0.08);
+}
+
+.audio-msg audio {
+    display: none;
+}
+
+.audio-msg__play {
+    flex-shrink: 0;
+    width: 42px;
+    height: 42px;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    color: #121212;
+    background: linear-gradient(45deg, #d01df0, #1dcdf0);
+    box-shadow: 0 0 12px rgba(29, 205, 240, 0.35);
+    transition: transform 0.15s, filter 0.15s;
+}
+
+.audio-msg__play:hover {
+    filter: brightness(1.1);
+    transform: scale(1.05);
+}
+
+.audio-msg__play .material-symbols-outlined {
+    font-size: 26px;
+}
+
+.audio-msg.is-playing .audio-msg__play {
+    animation: audioPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes audioPulse {
+    50% { box-shadow: 0 0 18px rgba(208, 29, 240, 0.55); }
+}
+
+.audio-msg__body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.audio-msg__wave {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 22px;
+    opacity: 0.85;
+}
+
+.audio-msg__wave span {
+    flex: 1;
+    height: var(--h, 40%);
+    border-radius: 2px;
+    background: linear-gradient(180deg, #1dcdf0, #d01df0);
+    transform-origin: bottom;
+}
+
+.audio-msg.is-playing .audio-msg__wave span {
+    animation: waveDance 0.9s ease-in-out infinite;
+}
+
+.audio-msg.is-playing .audio-msg__wave span:nth-child(odd) {
+    animation-delay: 0.12s;
+}
+
+.audio-msg.is-playing .audio-msg__wave span:nth-child(3n) {
+    animation-delay: 0.24s;
+}
+
+@keyframes waveDance {
+    0%, 100% { transform: scaleY(0.55); }
+    50% { transform: scaleY(1); }
+}
+
+.audio-msg__progress {
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.15);
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.message-row--self .audio-msg__progress {
+    background: rgba(0, 0, 0, 0.12);
+}
+
+.audio-msg__progress-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #d01df0, #1dcdf0);
+    transition: width 0.1s linear;
+}
+
+.audio-msg__meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 0.72rem;
+    opacity: 0.9;
+}
+
+.audio-msg__label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 600;
+}
+
+.audio-msg__time {
+    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.8;
+}
+
+.preview-audio-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--accent);
+}
+
+.preview-bar__media {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
 }
 
 .embed {
@@ -908,6 +1080,9 @@ button, textarea, input {
     .app {
         grid-template-columns: 1fr;
         grid-template-rows: var(--header-h) 1fr;
+        grid-template-areas:
+            "topbar"
+            "chat";
         max-width: none;
         border: none;
     }
