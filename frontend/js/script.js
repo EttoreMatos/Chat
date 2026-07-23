@@ -541,7 +541,18 @@ function formatDuration(sec) {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
+/** @type {AudioContext | null} */
+let sharedAudioCtx = null;
+
+function getSharedAudioCtx() {
+  const Ctx = window.AudioContext || window.webkitAudioContext;
+  if (!Ctx) return null;
+  if (!sharedAudioCtx) sharedAudioCtx = new Ctx();
+  return sharedAudioCtx;
+}
+
 function createAudioPlayer(url, name) {
+  const BAR_COUNT = 28;
   const wrap = document.createElement("div");
   wrap.className = "audio-msg";
 
@@ -557,10 +568,12 @@ function createAudioPlayer(url, name) {
   const wave = document.createElement("div");
   wave.className = "audio-msg__wave";
   wave.setAttribute("aria-hidden", "true");
-  for (let i = 0; i < 24; i++) {
+  const bars = [];
+  for (let i = 0; i < BAR_COUNT; i++) {
     const bar = document.createElement("span");
-    bar.style.setProperty("--h", `${30 + ((i * 37) % 70)}%`);
+    bar.style.setProperty("--h", "18%");
     wave.appendChild(bar);
+    bars.push(bar);
   }
 
   const progress = document.createElement("div");
@@ -583,16 +596,76 @@ function createAudioPlayer(url, name) {
 
   const audio = document.createElement("audio");
   audio.preload = "metadata";
+  audio.crossOrigin = "anonymous";
   audio.src = url;
-  const source = document.createElement("source");
-  source.src = url;
-  if (url.endsWith(".m4a") || url.endsWith(".mp4")) source.type = "audio/mp4";
-  else if (url.endsWith(".ogg")) source.type = "audio/ogg";
-  else if (url.endsWith(".mp3")) source.type = "audio/mpeg";
-  else source.type = "audio/webm";
-  audio.appendChild(source);
 
   const icon = playBtn.querySelector(".material-symbols-outlined");
+
+  /** @type {MediaElementAudioSourceNode | null} */
+  let sourceNode = null;
+  /** @type {AnalyserNode | null} */
+  let analyser = null;
+  let rafId = 0;
+  const freqData = new Uint8Array(32);
+
+  const resetBars = () => {
+    bars.forEach((bar) => bar.style.setProperty("--h", "18%"));
+  };
+
+  const ensureAudioGraph = () => {
+    if (sourceNode) return;
+    const ctx = getSharedAudioCtx();
+    if (!ctx) return;
+    try {
+      sourceNode = ctx.createMediaElementSource(audio);
+      analyser = ctx.createAnalyser();
+      analyser.fftSize = 64;
+      analyser.smoothingTimeConstant = 0.65;
+      sourceNode.connect(analyser);
+      analyser.connect(ctx.destination);
+    } catch (err) {
+      console.warn("Visualizador de áudio indisponível:", err);
+      sourceNode = null;
+      analyser = null;
+    }
+  };
+
+  const drawWave = () => {
+    if (!analyser || audio.paused || audio.ended) {
+      rafId = 0;
+      resetBars();
+      return;
+    }
+    analyser.getByteFrequencyData(freqData);
+    const usable = Math.floor(freqData.length * 0.7);
+    for (let i = 0; i < bars.length; i++) {
+      const idx = Math.min(
+        usable - 1,
+        Math.floor((i / bars.length) * usable)
+      );
+      const val = (freqData[idx] || 0) / 255;
+      const h = 12 + val * 88;
+      bars[i].style.setProperty("--h", `${h}%`);
+    }
+    rafId = requestAnimationFrame(drawWave);
+  };
+
+  const startVisualizer = async () => {
+    const ctx = getSharedAudioCtx();
+    if (ctx?.state === "suspended") {
+      await ctx.resume().catch(() => {});
+    }
+    ensureAudioGraph();
+    if (!rafId) rafId = requestAnimationFrame(drawWave);
+  };
+
+  const stopVisualizer = () => {
+    if (rafId) {
+      cancelAnimationFrame(rafId);
+      rafId = 0;
+    }
+    resetBars();
+  };
 
   const syncProgress = () => {
     const dur = audio.duration || 0;
@@ -608,12 +681,6 @@ function createAudioPlayer(url, name) {
     document.querySelectorAll(".audio-msg audio").forEach((other) => {
       if (other !== audio && !other.paused) {
         other.pause();
-        const otherWrap = other.closest(".audio-msg");
-        otherWrap?.classList.remove("is-playing");
-        const otherIcon = otherWrap?.querySelector(
-          ".audio-msg__play .material-symbols-outlined"
-        );
-        if (otherIcon) otherIcon.textContent = "play_arrow";
       }
     });
 
@@ -627,16 +694,19 @@ function createAudioPlayer(url, name) {
   audio.addEventListener("play", () => {
     wrap.classList.add("is-playing");
     icon.textContent = "pause";
+    startVisualizer();
   });
   audio.addEventListener("pause", () => {
     wrap.classList.remove("is-playing");
     icon.textContent = "play_arrow";
+    stopVisualizer();
   });
   audio.addEventListener("ended", () => {
     wrap.classList.remove("is-playing");
     icon.textContent = "play_arrow";
     fill.style.width = "0%";
     time.textContent = formatDuration(audio.duration || 0);
+    stopVisualizer();
   });
   audio.addEventListener("loadedmetadata", syncProgress);
   audio.addEventListener("timeupdate", syncProgress);
