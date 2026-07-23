@@ -73,6 +73,8 @@
 
             <section class="chat__messages" id="chatMessages"></section>
 
+            <div class="typing-indicator" id="typingIndicator" hidden></div>
+
             <div class="preview-bar" id="previewBar" hidden>
                 <div class="preview-bar__media" id="previewMedia"></div>
                 <button type="button" class="preview-bar__clear" id="clearPreview" aria-label="Remover anexo">
@@ -88,7 +90,10 @@
                 <button type="button" class="chat__attach" id="audioBtn" title="Gravar áudio" aria-label="Gravar áudio">
                     <span class="material-symbols-outlined" id="audioBtnIcon">mic</span>
                 </button>
-                <textarea class="chat__input" id="chatInput" placeholder="Mensagem em #geral" rows="1"></textarea>
+                <div class="composer-wrap">
+                    <ul class="mention-popup" id="mentionPopup" hidden></ul>
+                    <textarea class="chat__input" id="chatInput" placeholder="Mensagem em #geral — use @ para mencionar" rows="1"></textarea>
+                </div>
                 <button type="submit" class="chat__button" aria-label="Enviar">
                     <span class="material-symbols-outlined">send</span>
                 </button>

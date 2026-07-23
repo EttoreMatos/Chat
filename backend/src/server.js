@@ -312,6 +312,20 @@ wss.on("connection", (ws) => {
       return;
     }
 
+    if (msg.type === "typing") {
+      const user = clients.get(ws);
+      if (!user) return;
+      broadcast(
+        {
+          type: "typing",
+          userId: user.userId,
+          userName: user.userName,
+        },
+        ws
+      );
+      return;
+    }
+
     // chat message
     if (msg.type === "message" || msg.text != null || msg.attachments || msg.content) {
       broadcastAll(msg);

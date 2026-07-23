@@ -1,25 +1,34 @@
 /* FastChat — Discord-style layout */
 
 :root {
-    --bg-deep: #0c1118;
-    --bg-panel: #141b24;
-    --bg-sidebar: #0f151d;
-    --bg-elevated: #1a2330;
-    --bg-composer: #1e2836;
-    --border: rgba(255, 255, 255, 0.06);
-    --text: #e8eef6;
-    --text-muted: #8b9bb0;
-    --accent: #3ecf8e;
-    --accent-soft: rgba(62, 207, 142, 0.15);
+    --bg-deep: #121212;
+    --bg-panel: #181818;
+    --bg-sidebar: #161616;
+    --bg-elevated: #191919;
+    --bg-composer: #1f1f1f;
+    --border: rgba(255, 255, 255, 0.08);
+    --text: #f2f2f2;
+    --text-muted: #9a9a9a;
+    --accent: #1dcdf0;
+    --accent-2: #d01df0;
+    --accent-soft: rgba(29, 205, 240, 0.15);
+    --accent-grad: linear-gradient(45deg, #d01df0, #1dcdf0);
     --danger: #e85d5d;
-    --self-bubble: #243447;
-    --other-bubble: #1a2330;
+    --self-bubble: #f2f2f2;
+    --self-text: #121212;
+    --other-bubble: #333;
     --radius: 12px;
     --font: "Outfit", system-ui, sans-serif;
     --font-display: "Space Grotesk", "Outfit", sans-serif;
     --header-h: 56px;
     --composer-h: 72px;
     --sidebar-w: 260px;
+}
+
+@property --angle {
+    syntax: "<angle>";
+    initial-value: 0deg;
+    inherits: false;
 }
 
 * {
@@ -36,7 +45,7 @@ body {
     font-family: var(--font);
     color: var(--text);
     background:
-        linear-gradient(160deg, rgba(12, 17, 24, 0.78), rgba(15, 28, 36, 0.72)),
+        linear-gradient(160deg, rgba(12, 12, 18, 0.35), rgba(18, 18, 28, 0.4)),
         url("../images/WIN_20260705_18_06_46_Pro.jpg") center / cover fixed;
     overflow: hidden;
 }
@@ -57,7 +66,7 @@ button, textarea, input {
     justify-content: center;
     padding: 24px;
     background:
-        linear-gradient(165deg, rgba(12, 17, 24, 0.78), rgba(20, 40, 48, 0.82)),
+        linear-gradient(165deg, rgba(12, 12, 18, 0.3), rgba(18, 18, 28, 0.38)),
         url("../images/WIN_20260705_18_06_46_Pro.jpg") center / cover;
 }
 
@@ -88,7 +97,7 @@ button, textarea, input {
     width: 100%;
     max-width: 360px;
     background: var(--bg-panel);
-    border: 1px solid var(--border);
+    border: 1px solid transparent;
     border-radius: 16px;
     padding: 28px 24px;
     display: flex;
@@ -96,6 +105,35 @@ button, textarea, input {
     gap: 14px;
     box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
     animation: loginIn 0.45s ease-out;
+    position: relative;
+    z-index: 1;
+}
+
+.login__form::after,
+.login__form::before {
+    --angle: 0deg;
+    content: "";
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    border-radius: 16px;
+    background-image: conic-gradient(from var(--angle), #d01df0, #1dcdf0, #d01df0);
+    top: 50%;
+    left: 50%;
+    translate: -50% -50%;
+    z-index: -1;
+    padding: 3px;
+    animation: 3s spin linear infinite;
+}
+
+.login__form::before {
+    filter: blur(1.5rem);
+    opacity: 0.8;
+}
+
+@keyframes spin {
+    from { --angle: 0deg; }
+    to { --angle: 360deg; }
 }
 
 @keyframes loginIn {
@@ -127,15 +165,16 @@ button, textarea, input {
     border-radius: 999px;
     font-size: 0.85rem;
     font-weight: 600;
-    background: var(--accent-soft);
-    color: var(--accent);
+    background: var(--accent-grad);
+    color: #121212;
     cursor: pointer;
     border: 1px solid transparent;
-    transition: border-color 0.2s, background 0.2s;
+    transition: filter 0.2s, box-shadow 0.2s;
 }
 
 .custom-file-upload:hover {
-    border-color: var(--accent);
+    filter: brightness(1.15);
+    box-shadow: 0 0 15px #0ef;
 }
 
 .custom-file-upload input {
@@ -187,17 +226,18 @@ button, textarea, input {
     margin-top: 4px;
     padding: 12px;
     border: none;
-    border-radius: 10px;
-    background: var(--accent);
-    color: #0a1210;
+    border-radius: 999px;
+    background: var(--accent-grad);
+    color: #121212;
     font-weight: 700;
     font-size: 1rem;
     cursor: pointer;
-    transition: filter 0.2s, transform 0.15s;
+    transition: filter 0.2s, box-shadow 0.2s, transform 0.15s;
 }
 
 .login__button:hover {
-    filter: brightness(1.08);
+    filter: brightness(1.15);
+    box-shadow: 0 0 15px #0ef;
 }
 
 .login__button:active {
@@ -219,8 +259,8 @@ button, textarea, input {
     width: 100%;
     max-width: 1400px;
     margin: 0 auto;
-    background: rgba(12, 17, 24, 0.72);
-    backdrop-filter: blur(12px);
+    background: rgba(18, 18, 18, 0.55);
+    backdrop-filter: blur(10px);
     border-left: 1px solid var(--border);
     border-right: 1px solid var(--border);
 }
@@ -355,16 +395,19 @@ button, textarea, input {
 
 .sair {
     align-self: flex-start;
-    background: none;
+    background: var(--accent-grad);
     border: none;
-    color: var(--text-muted);
+    color: #121212;
     font-size: 0.75rem;
+    font-weight: 700;
     cursor: pointer;
-    padding: 0;
+    padding: 4px 10px;
+    border-radius: 6px;
 }
 
 .sair:hover {
-    color: var(--danger);
+    filter: brightness(1.1);
+    box-shadow: 0 0 10px rgba(0, 174, 255, 0.5);
 }
 
 /* ——— Chat main ——— */
@@ -487,16 +530,54 @@ button, textarea, input {
 
 .message-row--self .message-bubble {
     background: var(--self-bubble);
-    border-color: rgba(62, 207, 142, 0.2);
+    color: var(--self-text);
+    border-color: transparent;
+    border-radius: 12px 12px 0 12px;
+}
+
+.message-row--self .message-text a {
+    color: #0479c1;
 }
 
 .message-text a {
-    color: #6ec8ff;
+    color: #1dcdf0;
     text-decoration: underline;
 }
 
 .mention {
-    font-weight: 600;
+    background-color: #063565;
+    color: inherit;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: bold;
+    position: relative;
+    z-index: 0;
+    display: inline-block;
+}
+
+.mention::before,
+.mention::after {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    background-image: conic-gradient(from var(--angle), #d01df0, #1dcdf0, #d01df0);
+    z-index: -2;
+    animation: spin-mention 3s linear infinite;
+}
+
+.mention::before {
+    filter: blur(10px);
+    opacity: 0.7;
+}
+
+.mention--me {
+    background-color: rgba(208, 29, 240, 0.35);
+}
+
+@keyframes spin-mention {
+    from { --angle: 0deg; }
+    to { --angle: 360deg; }
 }
 
 .message-system {
@@ -517,7 +598,7 @@ button, textarea, input {
 
 .message-system--entry:hover {
     color: var(--text);
-    background: rgba(62, 207, 142, 0.12);
+    background: rgba(29, 205, 240, 0.12);
 }
 
 /* ——— Attachments & embeds ——— */
@@ -695,7 +776,7 @@ button, textarea, input {
 }
 
 .chat__input:focus {
-    border-color: rgba(62, 207, 142, 0.4);
+    border-color: rgba(29, 205, 240, 0.5);
 }
 
 .chat__button {
@@ -704,16 +785,17 @@ button, textarea, input {
     height: 40px;
     border: none;
     border-radius: 10px;
-    background: var(--accent);
-    color: #0a1210;
+    background: var(--accent-grad);
+    color: #121212;
     cursor: pointer;
     display: grid;
     place-items: center;
-    transition: filter 0.15s;
+    transition: filter 0.15s, box-shadow 0.15s;
 }
 
 .chat__button:hover {
     filter: brightness(1.1);
+    box-shadow: 0 0 12px rgba(29, 205, 240, 0.45);
 }
 
 .chat__button:disabled {
@@ -829,3 +911,93 @@ button, textarea, input {
     font-size: 22px;
     user-select: none;
 }
+
+/* ——— Typing & mentions autocomplete ——— */
+
+.typing-indicator {
+    min-height: 22px;
+    padding: 0 20px 4px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.typing-indicator[hidden] {
+    display: none;
+}
+
+.typing-indicator:not([hidden])::after {
+    content: "";
+    animation: typingDots 1.2s steps(4, end) infinite;
+}
+
+@keyframes typingDots {
+    0% { content: ""; }
+    25% { content: "."; }
+    50% { content: ".."; }
+    75% { content: "..."; }
+}
+
+.composer-wrap {
+    position: relative;
+    flex: 1;
+    display: flex;
+    min-width: 0;
+}
+
+.composer-wrap .chat__input {
+    width: 100%;
+    flex: 1;
+}
+
+.mention-popup {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: calc(100% + 6px);
+    max-height: 200px;
+    overflow-y: auto;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
+    z-index: 50;
+    padding: 4px;
+}
+
+.mention-popup[hidden] {
+    display: none;
+}
+
+.mention-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    border: none;
+    background: transparent;
+    color: var(--text);
+    padding: 8px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: left;
+    font: inherit;
+}
+
+.mention-option:hover,
+.mention-option.is-active {
+    background: rgba(29, 205, 240, 0.12);
+}
+
+.mention-option img {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.mention-option span {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+

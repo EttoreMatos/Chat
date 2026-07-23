@@ -48,6 +48,8 @@ const logoutBtn = document.getElementById("logoutBtn");
 const sidebar = document.querySelector(".sidebar");
 const sidebarToggle = document.getElementById("sidebarToggle");
 const sidebarBackdrop = document.getElementById("sidebarBackdrop");
+const typingIndicator = document.getElementById("typingIndicator");
+const mentionPopup = document.getElementById("mentionPopup");
 
 const imageInput = document.getElementById("imageInput");
 const imageBtn = document.getElementById("imageBtn");
@@ -68,6 +70,8 @@ const audio_disconnect = document.getElementById("disconnect");
 const user = { id: "", name: "", color: "", avatar: "", description: "" };
 let websocket = null;
 const activeUsers = {};
+/** @type {Array<{userId:string,userName:string,userColor:string,userAvatar:string,userDesc:string}>} */
+let presenceUsers = [];
 
 /** @type {{ file: File|Blob|null, kind: 'image'|'audio'|null, previewUrl: string|null }} */
 let pendingAttachment = { file: null, kind: null, previewUrl: null };
@@ -75,6 +79,12 @@ let pendingAttachment = { file: null, kind: null, previewUrl: null };
 let mediaRecorder = null;
 let recordChunks = [];
 let isRecording = false;
+
+const typingUsers = new Map();
+let typingClearTimers = new Map();
+let lastTypingSent = 0;
+let mentionActiveIndex = 0;
+let mentionQuery = null;
 
 PreviewAvatar.src = defaultAvatar;
 user.avatar = defaultAvatar;
@@ -118,15 +128,20 @@ function escapeHtml(text) {
 
 function formatTextHtml(text) {
   const escaped = escapeHtml(text);
+  const myName = user.name.trim().toLowerCase();
   return escaped
     .replace(/\r\n|\r|\n/g, "<br>")
     .replace(/@([^\s*`#]+(?:\s[^\s*`#]+)*)|\*(.*?)\*/g, (match, mention, bold) => {
       if (mention) {
         const username = mention.trim().toLowerCase();
         const color = activeUsers[username];
-        return color
-          ? `<span class="mention" style="color:${color}">@${escapeHtml(mention)}</span>`
-          : `@${escapeHtml(mention)}`;
+        const isMe = username === myName;
+        const cls = isMe ? "mention mention--me" : "mention";
+        if (color || isMe) {
+          const style = color ? ` style="color:${color}"` : "";
+          return `<span class="${cls}"${style}>@${escapeHtml(mention)}</span>`;
+        }
+        return `@${escapeHtml(mention)}`;
       }
       if (bold != null) return `<b>${bold}</b>`;
       return match;
@@ -220,6 +235,7 @@ function setPendingAttachment(file, kind) {
 function renderPresence(users) {
   userList.innerHTML = "";
   const list = Array.isArray(users) ? users : [];
+  presenceUsers = list;
   onlineCount.textContent = `${list.length} online`;
 
   Object.keys(activeUsers).forEach((k) => delete activeUsers[k]);
@@ -254,6 +270,138 @@ function renderPresence(users) {
     li.append(img, meta);
     userList.appendChild(li);
   }
+}
+
+function updateTypingUI() {
+  const names = [...typingUsers.values()].filter(
+    (n) => n.toLowerCase() !== user.name.toLowerCase()
+  );
+  if (!names.length) {
+    typingIndicator.hidden = true;
+    typingIndicator.textContent = "";
+    return;
+  }
+  typingIndicator.hidden = false;
+  if (names.length === 1) {
+    typingIndicator.textContent = `${names[0]} está digitando`;
+  } else if (names.length === 2) {
+    typingIndicator.textContent = `${names[0]} e ${names[1]} estão digitando`;
+  } else {
+    typingIndicator.textContent = `${names[0]} e mais ${names.length - 1} estão digitando`;
+  }
+}
+
+function handleTypingEvent(parsed) {
+  if (!parsed.userId || parsed.userId === user.id) return;
+  const name = parsed.userName || "Alguém";
+  typingUsers.set(parsed.userId, name);
+  updateTypingUI();
+
+  const prev = typingClearTimers.get(parsed.userId);
+  if (prev) clearTimeout(prev);
+  typingClearTimers.set(
+    parsed.userId,
+    setTimeout(() => {
+      typingUsers.delete(parsed.userId);
+      typingClearTimers.delete(parsed.userId);
+      updateTypingUI();
+    }, 2500)
+  );
+}
+
+function sendTyping() {
+  if (!websocket || websocket.readyState !== WebSocket.OPEN) return;
+  const now = Date.now();
+  if (now - lastTypingSent < 1200) return;
+  lastTypingSent = now;
+  websocket.send(
+    JSON.stringify({
+      type: "typing",
+      userId: user.id,
+      userName: user.name,
+    })
+  );
+}
+
+function getMentionContext() {
+  const value = chatInput.value;
+  const caret = chatInput.selectionStart ?? value.length;
+  const before = value.slice(0, caret);
+  const match = before.match(/(^|\s)@([^\s@]*)$/);
+  if (!match) return null;
+  return {
+    start: match.index + match[1].length,
+    query: match[2].toLowerCase(),
+    caret,
+  };
+}
+
+function getMentionMatches() {
+  const ctx = getMentionContext();
+  if (!ctx) return [];
+  return presenceUsers.filter((u) => {
+    if (!u.userName) return false;
+    if (u.userId === user.id) return false;
+    return u.userName.toLowerCase().includes(ctx.query);
+  });
+}
+
+function hideMentionPopup() {
+  mentionPopup.hidden = true;
+  mentionPopup.innerHTML = "";
+  mentionQuery = null;
+}
+
+function showMentionPopup() {
+  const matches = getMentionMatches();
+  if (!matches.length) {
+    hideMentionPopup();
+    return;
+  }
+  mentionQuery = getMentionContext();
+  mentionActiveIndex = Math.min(mentionActiveIndex, matches.length - 1);
+  if (mentionActiveIndex < 0) mentionActiveIndex = 0;
+
+  mentionPopup.innerHTML = "";
+  matches.forEach((u, i) => {
+    const li = document.createElement("li");
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = `mention-option${i === mentionActiveIndex ? " is-active" : ""}`;
+    btn.dataset.name = u.userName;
+
+    const img = document.createElement("img");
+    img.src = mediaUrl(u.userAvatar);
+    img.alt = "";
+
+    const span = document.createElement("span");
+    span.textContent = u.userName;
+    if (u.userColor) span.style.color = u.userColor;
+
+    btn.append(img, span);
+    btn.addEventListener("mousedown", (e) => {
+      e.preventDefault();
+      insertMention(u.userName);
+    });
+    li.appendChild(btn);
+    mentionPopup.appendChild(li);
+  });
+  mentionPopup.hidden = false;
+}
+
+function insertMention(name) {
+  const ctx = getMentionContext();
+  if (!ctx) return;
+  const value = chatInput.value;
+  const before = value.slice(0, ctx.start);
+  const after = value.slice(ctx.caret);
+  const insertion = `@${name} `;
+  chatInput.value = before + insertion + after;
+  const pos = before.length + insertion.length;
+  chatInput.focus();
+  chatInput.setSelectionRange(pos, pos);
+  hideMentionPopup();
+  chatInput.dispatchEvent(new Event("input"));
 }
 
 function openProfile(name, desc, avatar) {
@@ -442,6 +590,11 @@ const processMessage = ({ data }) => {
     return;
   }
 
+  if (parsed.type === "typing") {
+    handleTypingEvent(parsed);
+    return;
+  }
+
   if (parsed.type === "connect") {
     audio_connect.play().catch(() => {});
     if (parsed.userName) {
@@ -459,11 +612,27 @@ const processMessage = ({ data }) => {
     if (parsed.userName) {
       delete activeUsers[parsed.userName.toLowerCase()];
     }
+    if (parsed.userId) {
+      typingUsers.delete(parsed.userId);
+      const t = typingClearTimers.get(parsed.userId);
+      if (t) clearTimeout(t);
+      typingClearTimers.delete(parsed.userId);
+      updateTypingUI();
+    }
     chatMessages.appendChild(
       createSystemMessage(parsed.content, "disconnect", parsed)
     );
     scrollScreen();
     return;
+  }
+
+  // stop showing this user as typing when they send a message
+  if (parsed.userId) {
+    typingUsers.delete(parsed.userId);
+    const t = typingClearTimers.get(parsed.userId);
+    if (t) clearTimeout(t);
+    typingClearTimers.delete(parsed.userId);
+    updateTypingUI();
   }
 
   const isSelf = parsed.userId === user.id;
@@ -718,9 +887,38 @@ audioBtn.addEventListener("click", toggleRecording);
 chatInput.addEventListener("input", () => {
   chatInput.style.height = "auto";
   chatInput.style.height = `${Math.min(chatInput.scrollHeight, 120)}px`;
+  sendTyping();
+  showMentionPopup();
 });
 
 chatInput.addEventListener("keydown", (e) => {
+  const matches = getMentionMatches();
+  const popupOpen = !mentionPopup.hidden && matches.length > 0;
+
+  if (popupOpen && e.key === "ArrowDown") {
+    e.preventDefault();
+    mentionActiveIndex = (mentionActiveIndex + 1) % matches.length;
+    showMentionPopup();
+    return;
+  }
+  if (popupOpen && e.key === "ArrowUp") {
+    e.preventDefault();
+    mentionActiveIndex =
+      (mentionActiveIndex - 1 + matches.length) % matches.length;
+    showMentionPopup();
+    return;
+  }
+  if (popupOpen && (e.key === "Enter" || e.key === "Tab")) {
+    e.preventDefault();
+    insertMention(matches[mentionActiveIndex].userName);
+    return;
+  }
+  if (popupOpen && e.key === "Escape") {
+    e.preventDefault();
+    hideMentionPopup();
+    return;
+  }
+
   if (e.key === "Enter" && !e.shiftKey) {
     e.preventDefault();
     chatForm.requestSubmit();
