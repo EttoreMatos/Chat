@@ -67,7 +67,7 @@ button, textarea, input {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0;
+    gap: 12px;
     padding: 24px;
     position: relative;
     z-index: 100;
@@ -79,7 +79,6 @@ button, textarea, input {
 
 .login__brand {
     text-align: center;
-    margin-bottom: 12px;
 }
 
 .login__brand h1 {
@@ -97,83 +96,86 @@ button, textarea, input {
     font-size: 0.95rem;
 }
 
-.Preview-avatar {
-    display: grid;
-    place-items: center;
-    width: 96px;
-    height: 96px;
-    border-radius: 50%;
-    background-color: #000;
-    border: 3px solid #1dcdf0;
-    margin: 0 auto -48px;
+/* anel colorido por fora; o miolo preto fica em .login */
+.login-shell {
+    --angle: 0deg;
     position: relative;
-    z-index: 3;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
-    overflow: hidden;
-}
-
-.Preview-avatar__icon {
-    font-size: 40px;
-    color: #6a6a6a;
-    user-select: none;
-}
-
-.Preview-avatar__img {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
-}
-
-.Preview-avatar__img[hidden] {
-    display: none;
-}
-
-.Preview-avatar.has-image .Preview-avatar__icon {
-    display: none;
-}
-
-.login {
-    display: block;
     width: 100%;
     max-width: 340px;
-    background: #000;
+    margin-top: 48px;
+    padding: 3px;
     border-radius: 14px;
-    padding: 56px 22px 22px;
-    position: relative;
-    z-index: 1;
-    isolation: isolate;
-    overflow: hidden;
+    background: conic-gradient(from var(--angle), #d01df0, #1dcdf0, #d01df0);
+    animation: 3s spin linear infinite;
     box-shadow:
         0 0 18px rgba(208, 29, 240, 0.35),
         0 0 36px rgba(29, 205, 240, 0.25);
 }
 
-/* só a borda colorida — sem placa de glow por baixo (evita tingir o centro) */
-.login::after {
-    --angle: 0deg;
-    content: "";
+.Preview-avatar {
     position: absolute;
-    inset: 0;
-    border-radius: 14px;
-    padding: 3px;
-    background: conic-gradient(from var(--angle), #d01df0, #1dcdf0, #d01df0);
-    -webkit-mask:
-        linear-gradient(#fff 0 0) content-box,
-        linear-gradient(#fff 0 0);
-    mask:
-        linear-gradient(#fff 0 0) content-box,
-        linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
-    animation: 3s spin linear infinite;
-    z-index: 2;
+    top: -42px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 5;
+    display: grid;
+    place-items: center;
+    width: 96px;
+    height: 96px;
+    min-width: 96px;
+    min-height: 96px;
+    max-width: 96px;
+    max-height: 96px;
+    border-radius: 50%;
+    background: #000;
+    border: 3px solid #1dcdf0;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+    overflow: hidden;
 }
 
-.login::before {
+.Preview-avatar__icon {
+    grid-area: 1 / 1;
+    font-size: 40px !important;
+    line-height: 1 !important;
+    width: 40px;
+    height: 40px;
+    color: #6a6a6a;
+    user-select: none;
+    pointer-events: none;
+}
+
+.Preview-avatar__img {
+    grid-area: 1 / 1;
+    width: 100%;
+    height: 100%;
+    max-width: 96px;
+    max-height: 96px;
+    object-fit: cover;
+    object-position: center;
+    border-radius: 50%;
+    display: block;
+}
+
+.Preview-avatar__img[hidden] {
+    display: none !important;
+}
+
+.Preview-avatar.has-image .Preview-avatar__icon {
+    display: none !important;
+}
+
+.login {
+    display: block;
+    width: 100%;
+    background: #000;
+    border-radius: 11px;
+    padding: 58px 22px 22px;
+    position: relative;
+    z-index: 1;
+}
+
+.login::before,
+.login::after {
     content: none;
     display: none;
 }
