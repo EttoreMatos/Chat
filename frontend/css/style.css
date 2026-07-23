@@ -584,7 +584,7 @@ button, textarea, input {
 }
 
 .message-bubble {
-    padding: 10px 14px 8px;
+    padding: 10px 14px 4px;
     border-radius: var(--radius);
     background: var(--other-bubble);
     border: 1px solid var(--border);
@@ -593,7 +593,7 @@ button, textarea, input {
     font-size: 0.95rem;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 4px;
     min-width: 120px;
 }
 
@@ -602,6 +602,8 @@ button, textarea, input {
     color: var(--self-text);
     border-color: transparent;
     border-radius: 12px 12px 0 12px;
+    padding-bottom: 8px;
+    gap: 8px;
 }
 
 .hour {
@@ -612,15 +614,20 @@ button, textarea, input {
 .hour--inside {
     display: block;
     align-self: flex-end;
-    margin-top: 4px;
+    margin-top: 0;
     opacity: 0.85;
     line-height: 1;
     font-size: 0.68rem;
     order: 99;
 }
 
+.message-row:not(.message-row--self) .hour--inside {
+    margin-top: 0;
+}
+
 .message-row--self .hour--inside {
     color: rgba(18, 18, 18, 0.55);
+    margin-top: 4px;
 }
 
 .message-row--self .message-text a {
