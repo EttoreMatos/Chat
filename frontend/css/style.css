@@ -98,10 +98,10 @@ button, textarea, input {
 }
 
 .Preview-avatar {
-    display: block;
+    display: grid;
+    place-items: center;
     width: 96px;
     height: 96px;
-    object-fit: cover;
     border-radius: 50%;
     background-color: #000;
     border: 3px solid #1dcdf0;
@@ -109,6 +109,30 @@ button, textarea, input {
     position: relative;
     z-index: 3;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+    overflow: hidden;
+}
+
+.Preview-avatar__icon {
+    font-size: 40px;
+    color: #6a6a6a;
+    user-select: none;
+}
+
+.Preview-avatar__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.Preview-avatar__img[hidden] {
+    display: none;
+}
+
+.Preview-avatar.has-image .Preview-avatar__icon {
+    display: none;
 }
 
 .login {
@@ -121,9 +145,13 @@ button, textarea, input {
     position: relative;
     z-index: 1;
     isolation: isolate;
+    overflow: hidden;
+    box-shadow:
+        0 0 18px rgba(208, 29, 240, 0.35),
+        0 0 36px rgba(29, 205, 240, 0.25);
 }
 
-/* borda colorida animada — centro permanece preto */
+/* só a borda colorida — sem placa de glow por baixo (evita tingir o centro) */
 .login::after {
     --angle: 0deg;
     content: "";
@@ -135,26 +163,19 @@ button, textarea, input {
     -webkit-mask:
         linear-gradient(#fff 0 0) content-box,
         linear-gradient(#fff 0 0);
+    mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
     pointer-events: none;
     animation: 3s spin linear infinite;
-    z-index: 0;
+    z-index: 2;
 }
 
-/* glow externo, sem pintar o centro */
 .login::before {
-    --angle: 0deg;
-    content: "";
-    position: absolute;
-    inset: -3px;
-    border-radius: 16px;
-    background: conic-gradient(from var(--angle), #d01df0, #1dcdf0, #d01df0);
-    filter: blur(1.4rem);
-    opacity: 0.55;
-    z-index: -1;
-    animation: 3s spin linear infinite;
-    pointer-events: none;
+    content: none;
+    display: none;
 }
 
 @keyframes spin {

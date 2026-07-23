@@ -33,7 +33,8 @@ const avatarInput = login.querySelector(".login__avatar");
 const loginInput = login.querySelector(".login__input");
 const loginBtn = login.querySelector(".login__button");
 const descInput = login.querySelector(".des__input");
-const PreviewAvatar = document.querySelector(".Preview-avatar");
+const PreviewAvatar = document.getElementById("avatarPreview");
+const PreviewAvatarImg = document.getElementById("avatarPreviewImg");
 
 const app = document.getElementById("app");
 const chat = document.getElementById("chat");
@@ -91,8 +92,21 @@ let lastTypingSent = 0;
 let mentionActiveIndex = 0;
 let mentionQuery = null;
 
-PreviewAvatar.src = defaultAvatar;
+PreviewAvatarImg.hidden = true;
+PreviewAvatar.classList.remove("has-image");
 user.avatar = defaultAvatar;
+
+function setAvatarPreview(src) {
+  if (!src) {
+    PreviewAvatarImg.removeAttribute("src");
+    PreviewAvatarImg.hidden = true;
+    PreviewAvatar.classList.remove("has-image");
+    return;
+  }
+  PreviewAvatarImg.src = src;
+  PreviewAvatarImg.hidden = false;
+  PreviewAvatar.classList.add("has-image");
+}
 
 function pickRecorderMime() {
   const candidates = [
@@ -1139,12 +1153,12 @@ function closeSidebar() {
 avatarInput.addEventListener("change", () => {
   const file = avatarInput.files[0];
   if (!file) {
-    PreviewAvatar.src = defaultAvatar;
+    setAvatarPreview(null);
     return;
   }
   const reader = new FileReader();
   reader.onload = () => {
-    PreviewAvatar.src = reader.result;
+    setAvatarPreview(reader.result);
   };
   reader.readAsDataURL(file);
 });
