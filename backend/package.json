@@ -1,8 +1,8 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "FastChat WebSocket + HTTP upload server",
+  "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js"
   },
@@ -10,7 +10,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "cors": "^2.8.5",
     "dotenv": "^17.0.1",
+    "express": "^5.1.0",
+    "multer": "^2.0.1",
     "ws": "^8.18.3"
   }
 }
