@@ -11,7 +11,14 @@ const API_WS = isLocal
   : "wss://chat-backend-xuyc.onrender.com";
 
 const defaultAvatar =
-  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAArklEQVRYR+3WwQ2AIBRE0Sx+kOVZwVYKJ3hTYnSY9TxAIp9R2tHX9vMxNMGkD4C8AgkJgFZgg0YA2gDTAM7kAQA4DRhsMABGY2k3pcoAcNgD2FwB1Z/7x+9hyoDKB7pADaSvIVwlz4Gi6ARHtDT9tgCI4BMCm54A2VbbA9i8A32BpaV7rc3xEvkW2NY+j4c6Rr2nOtu3AqKzNSc0poD02pTbSCau+Kd7kH4Fxoc6+FquFNsAAAAASUVORK5CYII=";
+  "data:image/svg+xml," +
+  encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80">
+      <rect width="80" height="80" fill="#2a2a2a"/>
+      <circle cx="40" cy="30" r="14" fill="#6a6a6a"/>
+      <ellipse cx="40" cy="64" rx="24" ry="18" fill="#6a6a6a"/>
+    </svg>`
+  );
 
 const colors = [
   "cadetblue",
@@ -24,7 +31,53 @@ const colors = [
   "green",
 ];
 
-const URL_REGEX = /((https?|ftp):\/\/[^\s<]+)/gi;
+const REACTION_EMOJIS = ["👍", "❤️", "😂", "😮", "😢", "🔥"];
+const STICKERS = [
+  "😀", "😂", "🤣", "😊", "😍", "🤩", "😎", "🤔", "😴", "😭",
+  "😡", "🤯", "🥳", "😇", "🤗", "🫡", "🤝", "👏", "🙌", "💪",
+  "🔥", "✨", "⭐", "💯", "🎉", "❤️", "💙", "💚", "💜", "🖤",
+  "👍", "👎", "✌️", "🤞", "👋", "🐱", "🐶", "🦊", "🐸", "🍕",
+  "🍔", "☕", "🎮", "🎵", "🚀", "👻", "🤖", "💀", "🧠", "👀",
+];
+
+let notificationsEnabled = false;
+
+function requestNotifications() {
+  if (!("Notification" in window)) return;
+  if (Notification.permission === "granted") {
+    notificationsEnabled = true;
+    return;
+  }
+  if (Notification.permission !== "denied") {
+    Notification.requestPermission().then((p) => {
+      notificationsEnabled = p === "granted";
+    });
+  }
+}
+
+function notifyBrowser(title, body, icon) {
+  if (!notificationsEnabled || !document.hidden) return;
+  try {
+    const n = new Notification(title, {
+      body: body || "",
+      icon: icon || undefined,
+      silent: false,
+    });
+    n.onclick = () => {
+      window.focus();
+      n.close();
+    };
+    setTimeout(() => n.close(), 5000);
+  } catch {
+    /* ignore */
+  }
+}
+
+function sendWs(payload) {
+  if (!websocket || websocket.readyState !== WebSocket.OPEN) return;
+  websocket.send(JSON.stringify(payload));
+}
+
 
 // DOM
 const login = document.getElementById("login");
@@ -53,9 +106,13 @@ const typingIndicator = document.getElementById("typingIndicator");
 const mentionPopup = document.getElementById("mentionPopup");
 
 const imageInput = document.getElementById("imageInput");
-const imageBtn = document.getElementById("imageBtn");
 const audioInput = document.getElementById("audioInput");
-const audioFileBtn = document.getElementById("audioFileBtn");
+const clipBtn = document.getElementById("clipBtn");
+const attachMenu = document.getElementById("attachMenu");
+const attachImageBtn = document.getElementById("attachImageBtn");
+const attachAudioBtn = document.getElementById("attachAudioBtn");
+const stickerBtn = document.getElementById("stickerBtn");
+const stickerPicker = document.getElementById("stickerPicker");
 const audioBtn = document.getElementById("audioBtn");
 const audioBtnIcon = document.getElementById("audioBtnIcon");
 const previewBar = document.getElementById("previewBar");
@@ -331,14 +388,59 @@ function setPendingAttachment(file, kind) {
     img.alt = "Prévia";
     previewMedia.appendChild(img);
   } else {
-    const chip = document.createElement("div");
-    chip.className = "preview-audio-chip";
-    chip.innerHTML = `<span class="material-symbols-outlined">graphic_eq</span><span>${file.name || "Áudio"}</span>`;
-    previewMedia.appendChild(chip);
+    const preview = document.createElement("div");
+    preview.className = "preview-audio";
+
+    const playBtn = document.createElement("button");
+    playBtn.type = "button";
+    playBtn.className = "preview-audio__play";
+    playBtn.setAttribute("aria-label", "Ouvir prévia");
+    playBtn.innerHTML = `<span class="material-symbols-outlined">play_arrow</span>`;
+
+    const info = document.createElement("div");
+    info.className = "preview-audio__info";
+    const name = document.createElement("span");
+    name.className = "preview-audio__name";
+    name.textContent =
+      file.name?.replace(/\.[^.]+$/, "") || "Mensagem de voz";
+    const hint = document.createElement("span");
+    hint.className = "preview-audio__hint";
+    hint.textContent = "Pronto para enviar";
+    info.append(name, hint);
+
     const audio = document.createElement("audio");
-    audio.controls = true;
+    audio.preload = "metadata";
     audio.src = previewUrl;
-    previewMedia.appendChild(audio);
+
+    playBtn.addEventListener("click", () => {
+      if (audio.paused) {
+        audio.play().catch(() => {});
+      } else {
+        audio.pause();
+      }
+    });
+    audio.addEventListener("play", () => {
+      playBtn.querySelector(".material-symbols-outlined").textContent = "pause";
+      preview.classList.add("is-playing");
+    });
+    audio.addEventListener("pause", () => {
+      playBtn.querySelector(".material-symbols-outlined").textContent =
+        "play_arrow";
+      preview.classList.remove("is-playing");
+    });
+    audio.addEventListener("ended", () => {
+      playBtn.querySelector(".material-symbols-outlined").textContent =
+        "play_arrow";
+      preview.classList.remove("is-playing");
+    });
+    audio.addEventListener("loadedmetadata", () => {
+      if (Number.isFinite(audio.duration)) {
+        hint.textContent = formatDuration(audio.duration);
+      }
+    });
+
+    preview.append(playBtn, info, audio);
+    previewMedia.appendChild(preview);
   }
   previewBar.hidden = false;
 }
@@ -829,9 +931,117 @@ function createEmbedNode(embed) {
   return a;
 }
 
+function renderReactionBar(container, reactions, messageId) {
+  container.innerHTML = "";
+  const data = reactions && typeof reactions === "object" ? reactions : {};
+
+  Object.entries(data).forEach(([emoji, users]) => {
+    const list = Array.isArray(users) ? users : [];
+    if (!list.length) return;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "reaction-chip";
+    if (list.some((u) => u.userId === user.id)) btn.classList.add("is-mine");
+    btn.title = list.map((u) => u.userName).join(", ");
+    btn.innerHTML = `<span>${emoji}</span><span class="reaction-chip__count">${list.length}</span>`;
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleReaction(messageId, emoji);
+    });
+    container.appendChild(btn);
+  });
+
+  const addBtn = document.createElement("button");
+  addBtn.type = "button";
+  addBtn.className = "reaction-add";
+  addBtn.title = "Reagir";
+  addBtn.innerHTML = `<span class="material-symbols-outlined">add_reaction</span>`;
+  addBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    openReactionPicker(addBtn, messageId);
+  });
+  container.appendChild(addBtn);
+}
+
+function openReactionPicker(anchor, messageId) {
+  document.querySelectorAll(".reaction-picker").forEach((el) => el.remove());
+  const picker = document.createElement("div");
+  picker.className = "reaction-picker";
+  REACTION_EMOJIS.forEach((emoji) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = emoji;
+    b.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleReaction(messageId, emoji);
+      picker.remove();
+    });
+    picker.appendChild(b);
+  });
+  anchor.parentElement.appendChild(picker);
+  const close = (ev) => {
+    if (!picker.contains(ev.target) && ev.target !== anchor) {
+      picker.remove();
+      document.removeEventListener("click", close);
+    }
+  };
+  setTimeout(() => document.addEventListener("click", close), 0);
+}
+
+function toggleReaction(messageId, emoji) {
+  sendWs({
+    type: "react",
+    messageId,
+    emoji,
+    userId: user.id,
+    userName: user.name,
+  });
+}
+
+function applyReactionUpdate(parsed) {
+  const row = chatMessages.querySelector(`[data-message-id="${parsed.messageId}"]`);
+  if (!row) return;
+  let reactions = {};
+  try {
+    reactions = JSON.parse(row.dataset.reactions || "{}");
+  } catch {
+    reactions = {};
+  }
+  const emoji = parsed.emoji;
+  if (!emoji) return;
+
+  const current = Array.isArray(reactions[emoji]) ? reactions[emoji] : [];
+  const already = current.some((u) => u.userId === parsed.userId);
+
+  if (already) {
+    reactions[emoji] = current.filter((u) => u.userId !== parsed.userId);
+    if (!reactions[emoji].length) delete reactions[emoji];
+  } else {
+    Object.keys(reactions).forEach((key) => {
+      reactions[key] = (reactions[key] || []).filter(
+        (u) => u.userId !== parsed.userId
+      );
+      if (!reactions[key].length) delete reactions[key];
+    });
+    if (!reactions[emoji]) reactions[emoji] = [];
+    reactions[emoji].push({
+      userId: parsed.userId,
+      userName: parsed.userName,
+    });
+  }
+
+  row.dataset.reactions = JSON.stringify(reactions);
+  const bar = row.querySelector(".message-reactions");
+  if (bar) renderReactionBar(bar, reactions, parsed.messageId);
+}
+
 function createMessageElement(msg, isSelf) {
   const row = document.createElement("div");
   row.className = `message-row${isSelf ? " message-row--self" : ""}`;
+  const messageId = msg.id || crypto.randomUUID();
+  row.dataset.messageId = messageId;
+  row.dataset.userId = msg.userId || "";
+  row.dataset.reactions = JSON.stringify(msg.reactions || {});
 
   if (!isSelf) {
     const img = document.createElement("img");
@@ -857,6 +1067,13 @@ function createMessageElement(msg, isSelf) {
 
   const bubble = document.createElement("div");
   bubble.className = "message-bubble";
+
+  if (msg.sticker) {
+    const sticker = document.createElement("div");
+    sticker.className = "message-sticker";
+    sticker.textContent = msg.sticker;
+    bubble.appendChild(sticker);
+  }
 
   const text =
     msg.text != null
@@ -893,12 +1110,35 @@ function createMessageElement(msg, isSelf) {
     if (node) bubble.appendChild(node);
   }
 
+  const footer = document.createElement("div");
+  footer.className = "message-footer";
+
   const hour = document.createElement("span");
   hour.className = "hour hour--inside";
   hour.textContent = nowTime();
-  bubble.appendChild(hour);
+  footer.appendChild(hour);
 
-  body.appendChild(bubble);
+  if (isSelf) {
+    const del = document.createElement("button");
+    del.type = "button";
+    del.className = "message-delete";
+    del.title = "Apagar";
+    del.innerHTML = `<span class="material-symbols-outlined">delete</span>`;
+    del.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (!confirm("Apagar esta mensagem?")) return;
+      sendWs({ type: "delete", messageId, userId: user.id });
+    });
+    footer.appendChild(del);
+  }
+
+  bubble.appendChild(footer);
+
+  const reactionsBar = document.createElement("div");
+  reactionsBar.className = "message-reactions";
+  renderReactionBar(reactionsBar, msg.reactions || {}, messageId);
+
+  body.append(bubble, reactionsBar);
   row.appendChild(body);
   return row;
 }
@@ -952,6 +1192,21 @@ const processMessage = ({ data }) => {
     return;
   }
 
+  if (parsed.type === "react") {
+    applyReactionUpdate(parsed);
+    return;
+  }
+
+  if (parsed.type === "delete") {
+    const row = chatMessages.querySelector(
+      `[data-message-id="${parsed.messageId}"]`
+    );
+    if (row && row.dataset.userId === parsed.userId) row.remove();
+    return;
+  }
+
+  if (parsed.type && parsed.type !== "message") return;
+
   // stop showing this user as typing when they send a message
   if (parsed.userId) {
     typingUsers.delete(parsed.userId);
@@ -964,6 +1219,11 @@ const processMessage = ({ data }) => {
   const isSelf = parsed.userId === user.id;
   if (!isSelf) {
     audio_alert.play().catch(() => {});
+    const preview =
+      parsed.sticker ||
+      parsed.text ||
+      (parsed.attachments?.length ? "Enviou um anexo" : "Nova mensagem");
+    notifyBrowser(parsed.userName || "FastChat", preview, mediaUrl(parsed.userAvatar));
   }
   if (parsed.userName) {
     activeUsers[parsed.userName.toLowerCase()] = parsed.userColor;
@@ -977,6 +1237,7 @@ function iniciarChat() {
   login.hidden = true;
   app.hidden = false;
   document.body.classList.add("app-open");
+  requestNotifications();
 
   topoNome.textContent = user.name;
   topoNome.style.color = user.color;
@@ -1126,6 +1387,7 @@ const sendMessage = async (event) => {
 
     const message = {
       type: "message",
+      id: crypto.randomUUID(),
       userId: user.id,
       userName: user.name,
       userColor: user.color,
@@ -1133,17 +1395,88 @@ const sendMessage = async (event) => {
       text,
       attachments,
       embeds,
+      reactions: {},
     };
 
     websocket.send(JSON.stringify(message));
     chatInput.value = "";
     chatInput.style.height = "auto";
+    hideStickerPicker();
+    hideAttachMenu();
   } catch (err) {
     alert(err.message || "Falha ao enviar.");
   } finally {
     submitBtn.disabled = false;
   }
 };
+
+function sendSticker(sticker) {
+  if (!websocket || websocket.readyState !== WebSocket.OPEN) return;
+  websocket.send(
+    JSON.stringify({
+      type: "message",
+      id: crypto.randomUUID(),
+      userId: user.id,
+      userName: user.name,
+      userColor: user.color,
+      userAvatar: user.avatar,
+      text: "",
+      sticker,
+      attachments: [],
+      embeds: [],
+      reactions: {},
+    })
+  );
+  hideStickerPicker();
+}
+
+function buildStickerPicker() {
+  stickerPicker.innerHTML = "";
+  const title = document.createElement("div");
+  title.className = "sticker-picker__title";
+  title.textContent = "Stickers";
+  stickerPicker.appendChild(title);
+  const grid = document.createElement("div");
+  grid.className = "sticker-picker__grid";
+  STICKERS.forEach((s) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "sticker-picker__item";
+    btn.textContent = s;
+    btn.addEventListener("click", () => sendSticker(s));
+    grid.appendChild(btn);
+  });
+  stickerPicker.appendChild(grid);
+}
+
+function hideAttachMenu() {
+  attachMenu.hidden = true;
+  clipBtn.setAttribute("aria-expanded", "false");
+}
+
+function toggleAttachMenu() {
+  const open = attachMenu.hidden;
+  hideStickerPicker();
+  attachMenu.hidden = !open;
+  clipBtn.setAttribute("aria-expanded", open ? "true" : "false");
+}
+
+function hideStickerPicker() {
+  stickerPicker.hidden = true;
+}
+
+function toggleStickerPicker() {
+  hideAttachMenu();
+  if (stickerPicker.hidden) {
+    if (!stickerPicker.dataset.ready) {
+      buildStickerPicker();
+      stickerPicker.dataset.ready = "1";
+    }
+    stickerPicker.hidden = false;
+  } else {
+    stickerPicker.hidden = true;
+  }
+}
 
 async function toggleRecording() {
   if (isRecording && mediaRecorder) {
@@ -1238,14 +1571,23 @@ chatForm.addEventListener("submit", sendMessage);
 logoutBtn.addEventListener("click", exit);
 clearPreview.addEventListener("click", clearPendingAttachment);
 
-imageBtn.addEventListener("click", () => imageInput.click());
+clipBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  toggleAttachMenu();
+});
+attachImageBtn.addEventListener("click", () => {
+  hideAttachMenu();
+  imageInput.click();
+});
+attachAudioBtn.addEventListener("click", () => {
+  hideAttachMenu();
+  audioInput.click();
+});
 imageInput.addEventListener("change", () => {
   const file = imageInput.files[0];
   if (!file) return;
   setPendingAttachment(file, "image");
 });
-
-audioFileBtn.addEventListener("click", () => audioInput.click());
 audioInput.addEventListener("change", () => {
   const file = audioInput.files[0];
   if (!file) return;
@@ -1257,7 +1599,21 @@ audioInput.addEventListener("change", () => {
   setPendingAttachment(file, "audio");
 });
 
+stickerBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  toggleStickerPicker();
+});
+
 audioBtn.addEventListener("click", toggleRecording);
+
+document.addEventListener("click", (e) => {
+  if (!attachMenu.hidden && !e.target.closest(".attach-menu-wrap")) {
+    hideAttachMenu();
+  }
+  if (!stickerPicker.hidden && !e.target.closest(".composer-wrap") && !e.target.closest("#stickerBtn")) {
+    hideStickerPicker();
+  }
+});
 
 chatInput.addEventListener("input", () => {
   chatInput.style.height = "auto";

@@ -407,8 +407,25 @@ wss.on("connection", (ws) => {
       return;
     }
 
+    if (msg.type === "react" || msg.type === "delete") {
+      const user = clients.get(ws);
+      if (!user) return;
+      if (msg.type === "delete" && !msg.messageId) return;
+      if (msg.type === "react" && (!msg.messageId || !msg.emoji)) return;
+      broadcastAll({
+        type: msg.type,
+        messageId: msg.messageId,
+        emoji: msg.type === "react" ? String(msg.emoji).slice(0, 8) : undefined,
+        userId: user.userId,
+        userName: user.userName,
+      });
+      return;
+    }
+
     // chat message
-    if (msg.type === "message" || msg.text != null || msg.attachments || msg.content) {
+    if (msg.type === "message" || msg.text != null || msg.attachments || msg.content || msg.sticker) {
+      if (!msg.id) msg.id = randomUUID();
+      if (!msg.reactions) msg.reactions = {};
       broadcastAll(msg);
     }
   });
