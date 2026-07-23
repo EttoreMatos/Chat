@@ -807,7 +807,7 @@ button, textarea, input {
     left: 0;
     right: 0;
     bottom: calc(100% + 8px);
-    max-height: 220px;
+    max-height: 280px;
     overflow: auto;
     background: #1a1a1a;
     border: 1px solid var(--border);
