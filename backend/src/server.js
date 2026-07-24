@@ -300,9 +300,9 @@ function extractGifFromHtml(html, pageUrl) {
   }
 
   const match =
-    html.match(/https:\/\/static\d?\.klipy\.com\/[^"'\\s]+\.gif/i) ||
-    html.match(/https:\/\/media\.tenor\.com\/[^"'\\s]+\.gif/i) ||
-    html.match(/https:\/\/media1\.tenor\.com\/m\/[^"'\\s]+\.gif/i);
+  	html.match(/https:\/\/static\d?\.klipy\.com\/[^"'\s]+\.gif/i) ||
+  	html.match(/https:\/\/media\.tenor\.com\/[^"'\s]+\.gif/i) ||
+  	html.match(/https:\/\/media1\.tenor\.com\/m\/[^"'\s]+\.gif/i);
   if (match) {
     return /tenor\.com/i.test(match[0])
       ? normalizeTenorGifUrl(match[0])
@@ -363,13 +363,15 @@ app.get("/embed", async (req, res) => {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 5000);
     const response = await fetch(raw, {
-      signal: controller.signal,
-      headers: {
-        "User-Agent": "FastChatBot/1.0",
-        Accept: "text/html",
-      },
-      redirect: "follow",
-    });
+  	signal: controller.signal,
+  	headers: {
+    	"User-Agent":
+      	"Mozilla/5.0 (compatible; Discordbot/2.0; +https://discordapp.com)",
+    	Accept: "text/html,application/xhtml+xml",
+    	"Accept-Language": "pt-BR,pt;q=0.9,en;q=0.8",
+  	},
+  	redirect: "follow",
+	});
     clearTimeout(timer);
 
     const contentType = response.headers.get("content-type") || "";
@@ -385,6 +387,16 @@ app.get("/embed", async (req, res) => {
 
     const html = await response.text();
 
+	if (isCloudflareChallenge(html, response)) {
+  	return res.json({
+    	url: raw,
+    	kind: "link",
+    	title: parsed.hostname,
+    	description: "",
+    	image: null,
+  	});
+	}
+	
     if (isGifProviderPage(raw)) {
       const gifUrl = extractGifFromHtml(html, raw);
       if (gifUrl) {
@@ -397,6 +409,17 @@ app.get("/embed", async (req, res) => {
         });
       }
     }
+    
+    function isCloudflareChallenge(html, response) {
+  		if (response?.headers?.get("cf-mitigated") === "challenge") return true;
+  		if (!html) return false;
+  		return (
+    		/<title>\s*Just a moment/i.test(html) ||
+    		/id=["']cf-wrapper["']/i.test(html) ||
+    		/Enable JavaScript and cookies to continue/i.test(html) ||
+    		/cf-chl-|cf_chl_|__cf_chl_/i.test(html)
+  		);
+	}
 
     const title =
       extractMeta(html, "og:title") ||
