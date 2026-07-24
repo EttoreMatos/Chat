@@ -518,8 +518,16 @@ wss.on("connection", (ws) => {
 cleanupOldUploads();
 setInterval(cleanupOldUploads, UPLOAD_CLEANUP_INTERVAL_MS);
 
-server.listen(PORT, () => {
-  console.log(`FastChat server listening on ${PORT}`);
+const HOST = process.env.HOST || "0.0.0.0";
+
+server.on("error", (err) => {
+  console.error("Server failed to start:", err);
+  process.exit(1);
+});
+
+console.log(`Starting FastChat on ${HOST}:${PORT}...`);
+server.listen(PORT, HOST, () => {
+  console.log(`FastChat server listening on ${HOST}:${PORT}`);
   console.log(
     `Upload cleanup: max age ${UPLOAD_MAX_AGE_MS / 3600000}h, every ${UPLOAD_CLEANUP_INTERVAL_MS / 60000}min`
   );
