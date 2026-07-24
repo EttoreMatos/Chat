@@ -1018,6 +1018,11 @@ button, textarea, input {
     object-fit: cover;
 }
 
+.chat-gif {
+    object-fit: contain;
+    background: rgba(0, 0, 0, 0.2);
+}
+
 .audio-msg {
     display: flex;
     align-items: center;

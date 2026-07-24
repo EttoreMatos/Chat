@@ -211,6 +211,106 @@ function extractMeta(html, prop) {
   return null;
 }
 
+function normalizeTenorGifUrl(url) {
+  try {
+    const u = new URL(url);
+    if (u.hostname === "media1.tenor.com") {
+      const parts = u.pathname.split("/").filter(Boolean);
+      if (parts[0] === "m" && parts.length >= 3) {
+        return new URL(
+          `/${parts[1]}/${parts.slice(2).join("/")}`,
+          "https://media.tenor.com"
+        ).href;
+      }
+    }
+    if (u.hostname === "c.tenor.com") {
+      const parts = u.pathname.split("/").filter(Boolean);
+      if (parts.length >= 2) {
+        return new URL(
+          `/${parts[0]}/${parts.slice(1).join("/")}`,
+          "https://media.tenor.com"
+        ).href;
+      }
+    }
+    return url;
+  } catch {
+    return url;
+  }
+}
+
+function directGifFromUrl(url) {
+  try {
+    const u = new URL(url);
+    const host = u.hostname.toLowerCase();
+    if (/^static\d?\.klipy\.com$/.test(host) && /\.gif(\?|$)/i.test(u.pathname)) {
+      return { kind: "gif", url, image: url, title: "GIF" };
+    }
+    if (host === "media.tenor.com" && /\.gif(\?|$)/i.test(u.pathname)) {
+      return { kind: "gif", url, image: url, title: "GIF" };
+    }
+    if (
+      (host === "media1.tenor.com" || host === "c.tenor.com") &&
+      /\.gif(\?|$)/i.test(u.pathname)
+    ) {
+      return {
+        kind: "gif",
+        url,
+        image: normalizeTenorGifUrl(url),
+        title: "GIF",
+      };
+    }
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
+function isGifProviderPage(url) {
+  try {
+    const u = new URL(url);
+    const host = u.hostname.toLowerCase();
+    if (host.includes("tenor.com") && !host.startsWith("media") && host !== "c.tenor.com") {
+      return true;
+    }
+    if (/^(www\.)?klipy\.com$/.test(host) && /^\/(gifs|clips|stickers|memes)\//.test(u.pathname)) {
+      return true;
+    }
+  } catch {
+    /* ignore */
+  }
+  return false;
+}
+
+function extractGifFromHtml(html, pageUrl) {
+  const ogImage = extractMeta(html, "og:image");
+  if (ogImage) {
+    try {
+      const image = new URL(ogImage, pageUrl).href;
+      if (/\.gif(\?|$)/i.test(image) || /tenor\.com|klipy\.com/i.test(image)) {
+        const normalized = /tenor\.com/i.test(image)
+          ? normalizeTenorGifUrl(image)
+          : image;
+        if (/\.gif(\?|$)/i.test(normalized)) {
+          return normalized;
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+
+  const match =
+    html.match(/https:\/\/static\d?\.klipy\.com\/[^"'\\s]+\.gif/i) ||
+    html.match(/https:\/\/media\.tenor\.com\/[^"'\\s]+\.gif/i) ||
+    html.match(/https:\/\/media1\.tenor\.com\/m\/[^"'\\s]+\.gif/i);
+  if (match) {
+    return /tenor\.com/i.test(match[0])
+      ? normalizeTenorGifUrl(match[0])
+      : match[0];
+  }
+  return null;
+}
+
 app.get("/embed", async (req, res) => {
   const raw = req.query.url;
   if (!raw || typeof raw !== "string") {
@@ -254,6 +354,11 @@ app.get("/embed", async (req, res) => {
     });
   }
 
+  const directGif = directGifFromUrl(raw);
+  if (directGif) {
+    return res.json(directGif);
+  }
+
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 5000);
@@ -279,6 +384,20 @@ app.get("/embed", async (req, res) => {
     }
 
     const html = await response.text();
+
+    if (isGifProviderPage(raw)) {
+      const gifUrl = extractGifFromHtml(html, raw);
+      if (gifUrl) {
+        return res.json({
+          url: raw,
+          kind: "gif",
+          image: gifUrl,
+          title: "GIF",
+          description: "",
+        });
+      }
+    }
+
     const title =
       extractMeta(html, "og:title") ||
       (html.match(/<title[^>]*>([^<]*)<\/title>/i) || [])[1] ||

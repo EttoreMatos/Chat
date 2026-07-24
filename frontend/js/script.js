@@ -481,6 +481,135 @@ function extractUrls(text) {
   return [...new Set(found)];
 }
 
+function normalizeTenorGifUrl(url) {
+  try {
+    const u = new URL(url);
+    if (u.hostname === "media1.tenor.com") {
+      const parts = u.pathname.split("/").filter(Boolean);
+      if (parts[0] === "m" && parts.length >= 3) {
+        return new URL(
+          `/${parts[1]}/${parts.slice(2).join("/")}`,
+          "https://media.tenor.com"
+        ).href;
+      }
+    }
+    if (u.hostname === "c.tenor.com") {
+      const parts = u.pathname.split("/").filter(Boolean);
+      if (parts.length >= 2) {
+        return new URL(
+          `/${parts[0]}/${parts.slice(1).join("/")}`,
+          "https://media.tenor.com"
+        ).href;
+      }
+    }
+    return url;
+  } catch {
+    return url;
+  }
+}
+
+function resolveGifEmbedClient(url) {
+  try {
+    const u = new URL(url);
+    const host = u.hostname.toLowerCase();
+    if (/^static\d?\.klipy\.com$/.test(host) && /\.gif(\?|$)/i.test(u.pathname)) {
+      return { kind: "gif", url, image: url, title: "GIF" };
+    }
+    if (host === "media.tenor.com" && /\.gif(\?|$)/i.test(u.pathname)) {
+      return { kind: "gif", url, image: url, title: "GIF" };
+    }
+    if (
+      (host === "media1.tenor.com" || host === "c.tenor.com") &&
+      /\.gif(\?|$)/i.test(u.pathname)
+    ) {
+      return {
+        kind: "gif",
+        url,
+        image: normalizeTenorGifUrl(url),
+        title: "GIF",
+      };
+    }
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
+function isGifProviderPageUrl(url) {
+  try {
+    const u = new URL(url);
+    const host = u.hostname.toLowerCase();
+    if (host.includes("tenor.com") && !host.startsWith("media") && host !== "c.tenor.com") {
+      return true;
+    }
+    if (/^(www\.)?klipy\.com$/.test(host) && /^\/(gifs|clips|stickers|memes)\//.test(u.pathname)) {
+      return true;
+    }
+  } catch {
+    /* ignore */
+  }
+  return false;
+}
+
+function mergeGifEmbeds(text, embeds = []) {
+  const merged = Array.isArray(embeds) ? [...embeds] : [];
+  const seen = new Set(merged.map((e) => e.url));
+  for (const url of extractUrls(text)) {
+    if (seen.has(url)) continue;
+    const direct = resolveGifEmbedClient(url);
+    if (direct) {
+      merged.push(direct);
+      seen.add(url);
+    }
+  }
+  return merged;
+}
+
+function stripEmbedUrlsFromText(text, embeds) {
+  if (!text || !embeds?.length) return text;
+  let result = text;
+  for (const emb of embeds) {
+    if (!emb?.url) continue;
+    const escaped = emb.url.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    result = result.replace(new RegExp(`\\s*${escaped}\\s*`, "g"), " ");
+  }
+  return result.replace(/\s+/g, " ").trim();
+}
+
+async function enrichMessageGifs(row, text, embeds) {
+  const urls = extractUrls(text).filter(
+    (url) =>
+      isGifProviderPageUrl(url) &&
+      !embeds.some((e) => e.kind === "gif" && e.url === url)
+  );
+  if (!urls.length) return;
+
+  for (const url of urls.slice(0, 1)) {
+    const data = await fetchEmbed(url);
+    if (!data || data.kind !== "gif" || !data.image) continue;
+
+    const allEmbeds = [...embeds, data];
+    const bubble = row.querySelector(".message-bubble");
+    const textEl = row.querySelector(".message-text");
+    const displayText = stripEmbedUrlsFromText(text, allEmbeds);
+
+    if (textEl) {
+      if (displayText) {
+        textEl.innerHTML = formatTextHtml(displayText);
+      } else {
+        textEl.remove();
+      }
+    }
+
+    const node = createEmbedNode(data);
+    if (node && bubble) {
+      const footer = bubble.querySelector(".message-footer");
+      if (footer) bubble.insertBefore(node, footer);
+      else bubble.appendChild(node);
+    }
+  }
+}
+
 function youtubeIdFromUrl(url) {
   try {
     const u = new URL(url);
@@ -1043,6 +1172,15 @@ function createAttachmentNodes(attachments) {
 function createEmbedNode(embed) {
   if (!embed) return null;
 
+  if (embed.kind === "gif" && embed.image) {
+    const img = document.createElement("img");
+    img.className = "chat-image chat-gif";
+    img.src = embed.image;
+    img.alt = "GIF";
+    img.loading = "lazy";
+    return img;
+  }
+
   if (embed.kind === "youtube" && (embed.videoId || youtubeIdFromUrl(embed.url))) {
     const id = embed.videoId || youtubeIdFromUrl(embed.url);
     const wrap = document.createElement("div");
@@ -1276,10 +1414,13 @@ function createMessageElement(msg, isSelf) {
         ? msg.content
         : "";
 
-  if (text) {
+  const embeds = mergeGifEmbeds(text, msg.embeds || []);
+  const displayText = stripEmbedUrlsFromText(text, embeds);
+
+  if (displayText) {
     const textEl = document.createElement("div");
     textEl.className = "message-text";
-    textEl.innerHTML = formatTextHtml(text);
+    textEl.innerHTML = formatTextHtml(displayText);
     bubble.appendChild(textEl);
   }
 
@@ -1299,7 +1440,7 @@ function createMessageElement(msg, isSelf) {
 
   bubble.appendChild(createAttachmentNodes(msg.attachments));
 
-  for (const emb of msg.embeds || []) {
+  for (const emb of embeds) {
     const node = createEmbedNode(emb);
     if (node) bubble.appendChild(node);
   }
@@ -1423,7 +1564,18 @@ const processMessage = ({ data }) => {
     activeUsers[parsed.userName.toLowerCase()] = parsed.userColor;
   }
 
-  chatMessages.appendChild(createMessageElement(parsed, isSelf));
+  const msgText =
+    parsed.text != null
+      ? parsed.text
+      : typeof parsed.content === "string" && !parsed.content.startsWith("<img")
+        ? parsed.content
+        : "";
+  const msgEmbeds = mergeGifEmbeds(msgText, parsed.embeds || []);
+  const row = createMessageElement(parsed, isSelf);
+  chatMessages.appendChild(row);
+  if (msgText && extractUrls(msgText).some((u) => isGifProviderPageUrl(u))) {
+    enrichMessageGifs(row, msgText, msgEmbeds);
+  }
   scrollScreen();
 };
 
@@ -1610,8 +1762,20 @@ async function buildEmbeds(text) {
       });
       continue;
     }
+    const directGif = resolveGifEmbedClient(url);
+    if (directGif) {
+      embeds.push(directGif);
+      continue;
+    }
+    if (isGifProviderPageUrl(url)) {
+      const data = await fetchEmbed(url);
+      if (data?.kind === "gif" && data.image) {
+        embeds.push(data);
+        continue;
+      }
+    }
     const data = await fetchEmbed(url);
-    if (data) embeds.push(data);
+    if (data && data.kind !== "gif") embeds.push(data);
   }
   return embeds;
 }
